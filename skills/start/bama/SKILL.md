@@ -11,7 +11,7 @@ skill for that step. One skill per call.
 
 ```text
 idea -> bama-research -> bama-clone (optional) -> bama-app-brief -> bama-new-app
-     -> bama-mac-design + bama-design-system + bama-app-icon
+     -> bama-mac-design (bama-ios-design for iPhone and iPad) + bama-design-system + bama-app-icon
      -> per milestone: bama-feature-spec -> bama-user-stories -> bama-improve-loop
 ```
 
@@ -67,6 +67,7 @@ which.
 | --- | --- |
 | Decide how a feature works and what it says: names, flow, modals, accessibility | `bama-ux-design` |
 | Make it look and feel like a Mac app | `bama-mac-design` |
+| Make it look and feel like an iPhone or iPad app | `bama-ios-design` |
 | The look of an app they name, or screenshots of one | `bama-design-from-app` |
 | An accent or brand color, or one set of colors, radii, and motion for the whole app | `bama-design-system` |
 | Fix spacing and alignment, or check the layout on the grid | `bama-layout-grid` |
