@@ -134,7 +134,7 @@ and sheet.
 
 SwiftUI is for a contained piece that AppKit or UIKit has no good answer for, such
 as a chart drawn with Swift Charts. Before you add one, write a decision in
-`CONTEXT.md` that says what it is and why AppKit does not cover it.
+`CONTEXT.md` that says what it is and why AppKit or UIKit does not cover it.
 
 - Host it in an `NSHostingView` (or `NSHostingController`) inside an AppKit
   view controller, or a `UIHostingController` added as a child view
