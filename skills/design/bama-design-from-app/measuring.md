@@ -50,17 +50,18 @@ Instead:
 If every ratio comes out the same (0.77, say), the reference ran zoomed.
 That is common for web apps. Either keep the zoomed sizes to match the
 screenshot, or keep the reference's own sizes (14, 26, 12) and multiply
-every token by one factor, so the kit can run at native size later.
+every token by one factor, so the app can run at native size later.
 
 ## Traps
 
-- **Hidden title bar.** A fixed `.frame` on a window with a hidden title
-  bar adds the bar's height: 742 became 774. Use `.defaultSize`.
-- **Window restoration.** A restored frame overrides `.defaultSize` during
-  snapshots. Use `.restorationBehavior(.disabled)` on the reference window.
-- **Focus ring.** The first button in the window gets the system focus ring
-  in a snapshot. Add `.focusEffectDisabled()` at the root and draw the
-  kit's own ring.
+- **Title bar height.** `setContentSize` sizes the content; with a visible
+  title bar and toolbar the window is taller: 742 became 774. Compare
+  content to content, or set `fullSizeContentView` as the reference does.
+- **Window restoration.** A restored frame overrides the size you set
+  during snapshots. Keep the window `restorable="NO"`, as the skeleton's is.
+- **Focus ring.** The first control in the window can take focus and show a
+  ring in a snapshot. Make the window itself first responder when it opens
+  (`window.makeFirstResponder(nil)`).
 - **Green button gray.** A window that cannot resize grays out the zoom
   button. Keep the window resizable.
 - **Two kinds of detail line.** A date line and a description line looked
@@ -75,7 +76,7 @@ every token by one factor, so the kit can run at native size later.
 
 ## A measured example
 
-A light task app, 1000 x 742 pt window, as it appears in the kit:
+A light task app, 1000 x 742 pt window, as measured into the tokens:
 
 | Token | Value |
 | --- | --- |

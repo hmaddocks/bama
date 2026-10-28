@@ -7,6 +7,7 @@ import Foundation
 ///   __CLI_NAME__ items list --json            one JSON object on stdout
 ///   __CLI_NAME__ mcp                          an MCP server on stdin and stdout
 /// Exit codes: 0 ok, 1 error, 2 usage, 3 not found, 4 app not running.
+@MainActor
 enum AgentCLI {
     /// nil when the app should open normally.
     static func runIfRequested() -> Int32? {

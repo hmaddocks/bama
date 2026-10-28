@@ -7,7 +7,13 @@ set -euo pipefail
 here=${0:A:h}
 repo=${here:h}
 out=${1:-/tmp/__APP_NAME__-icon.png}
-ictool="$(xcode-select -p)/../Applications/Icon Composer.app/Contents/Executables/ictool"
+# actool and ictool ship with Xcode, not the Command Line Tools.
+if [[ -z "${DEVELOPER_DIR:-}" ]]; then
+  selected=$(xcode-select -p 2>/dev/null || true)
+  [[ "$selected" == */Xcode*.app/Contents/Developer ]] && DEVELOPER_DIR=$selected || DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+fi
+export DEVELOPER_DIR
+ictool="$DEVELOPER_DIR/../Applications/Icon Composer.app/Contents/Executables/ictool"
 [[ -x "$ictool" ]] || { echo "ictool not found. Install Xcode 26 or later."; exit 1; }
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT

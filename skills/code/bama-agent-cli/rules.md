@@ -102,8 +102,8 @@ of Optical Flow and Onyx.
 ## What not to build
 
 - **Direct database access from the CLI.** Two processes writing one
-  SwiftData store skip the app's checks, can migrate it with the wrong
-  schema, and the window does not see the change.
+  Core Data store skip the app's checks, can migrate it with the wrong
+  model, and the window does not see the change.
 - **An XPC service in the app.** Apple's guidance: apps use XPC services,
   they do not provide them to command-line tools. It needs a launchd agent.
 - **AppleScript or URL schemes as the main channel.** They return no

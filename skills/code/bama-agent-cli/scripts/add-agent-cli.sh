@@ -1,37 +1,39 @@
 #!/bin/zsh
-# Adds the agent CLI and MCP server to an app made from the bama template.
+# Adds the agent CLI and MCP server to an app made from the bama-new-app skeleton.
 # Usage: add-agent-cli.sh <app-folder> <cli-name>
 #   add-agent-cli.sh ~/Developer/Tasks tasks
-# Copies Sources/<App>/Agent/*.swift and Sources/<App>/Main.swift, moves @main
-# from App.swift to Main.swift, and makes build.sh link ~/.local/bin/<cli-name>.
-# The example commands in Agent/AgentCommands.swift fit the template's Item
-# model. Replace them with the app's own (bama-agent-cli skill, step 3).
+# Copies <App>/Agent/*.swift, makes main.swift run the CLI before the app
+# starts, starts the socket in AppDelegate, and makes build.sh link
+# ~/.local/bin/<cli-name>. Agent/AgentCommands.swift has a status command and
+# commented examples; add the app's own (bama-agent-cli skill, step 3).
 set -euo pipefail
 app_dir=${1:?usage: add-agent-cli.sh <app-folder> <cli-name>}
 cli=${2:?usage: add-agent-cli.sh <app-folder> <cli-name>}
 [[ "$cli" =~ ^[a-z][a-z0-9-]*$ ]] || { echo "cli-name must be lowercase letters, digits, and dashes, like tasks or mail"; exit 1; }
 here=${0:A:h}
 template=${here:h}/template
-name=$(basename "$(find "$app_dir/Sources" -mindepth 1 -maxdepth 1 -type d | head -1)")
-src="$app_dir/Sources/$name"
-[[ -f "$src/App.swift" ]] || { echo "no $src/App.swift: is this an app from the bama template?"; exit 1; }
+[[ -f "$app_dir/project.yml" ]] || { echo "no $app_dir/project.yml: is this an app from the bama-new-app skeleton?"; exit 1; }
+name=$(awk '/^name:/ { print $2; exit }' "$app_dir/project.yml")
+src="$app_dir/$name"
+[[ -f "$src/main.swift" && -f "$src/AppDelegate.swift" ]] || { echo "no $src/main.swift or AppDelegate.swift"; exit 1; }
 [[ ! -e "$src/Agent" ]] || { echo "$src/Agent already exists"; exit 1; }
 
 mkdir -p "$src/Agent"
 for f in "$template"/Agent/*.swift; do
   sed -e "s/__APP_NAME__/$name/g" -e "s/__CLI_NAME__/$cli/g" "$f" > "$src/Agent/${f:t}"
 done
-sed -e "s/__APP_NAME__/$name/g" "$template/Main.swift" > "$src/Main.swift"
 
-# Main.swift has @main now: it starts the CLI or the app.
-perl -0pi -e "s/\@main\s*\n(struct ${name}App\s*:\s*App)/\$1/" "$src/App.swift"
-grep -q "^@main" "$src/App.swift" && { echo "could not remove @main from App.swift: remove it by hand"; exit 1; }
+# main.swift: a command after the app's name runs the CLI and exits;
+# anything else starts the app as before.
+if ! grep -q "AgentCLI.runIfRequested" "$src/main.swift"; then
+  perl -0pi -e 's/(_ = NSApplicationMain)/\/\/ `<app> <command>` runs the agent CLI and exits; anything else starts the app.\nif let code = MainActor.assumeIsolated({ AgentCLI.runIfRequested() }) { exit(code) }\n\n$1/' "$src/main.swift"
+fi
 
-# Start the socket first in the main view's .task block, where the template
-# starts seed data, the self-test, and snapshot mode.
-if ! grep -q "AgentSocket.listen" "$src/ContentView.swift" && grep -qE '^\s*\.task \{$' "$src/ContentView.swift"; then
-  perl -0pi -e 's/^(\s*)\.task \{\n/$1.task {\n$1    AgentRouter.model = model\n$1    AgentSocket.listen { AgentRouter.handle(\$0) }\n/m' "$src/ContentView.swift"
-  grep -q "AgentSocket.listen" "$src/ContentView.swift" && started=1
+# AppDelegate: start the socket once the store is open, before the self-test
+# and snapshot mode run.
+if ! grep -q "AgentSocket.listen" "$src/AppDelegate.swift"; then
+  perl -0pi -e 's/^(\s*)SeedData\.insertIfRequested\(into: store\)\n/$1AgentRouter.store = store\n$1AgentSocket.listen { AgentRouter.handle(\$0) }\n$1SeedData.insertIfRequested(into: store)\n/m' "$src/AppDelegate.swift"
+  grep -q "AgentSocket.listen" "$src/AppDelegate.swift" && started=1
 fi
 
 # build.sh puts the CLI on PATH.
@@ -40,7 +42,10 @@ if ! grep -q "local/bin/$cli" "$app_dir/build.sh"; then
   grep -q "local/bin/$cli" "$app_dir/build.sh" || echo "note: add the ~/.local/bin/$cli link to build.sh by hand"
 fi
 
+# New files join the build when the project is regenerated.
+touch "$app_dir/project.yml"
+
 echo "added the agent CLI to $name as \`$cli\`. Next (bama-agent-cli skill):"
-echo "  3. replace the example commands in $src/Agent/AgentCommands.swift"
-[[ -n "${started:-}" ]] || echo "  4. start the socket in the main view's .task: AgentRouter.model = model; AgentSocket.listen { AgentRouter.handle(\$0) }"
+echo "  3. add the app's commands in $src/Agent/AgentCommands.swift"
+[[ -n "${started:-}" ]] || echo "  4. start the socket in AppDelegate after the store opens: AgentRouter.store = store; AgentSocket.listen { AgentRouter.handle(\$0) }"
 echo "  5. ./build.sh, then $cli help"

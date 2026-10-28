@@ -51,23 +51,25 @@ Check: every user story in the first milestone's spec has its commands, and each
 "${CLAUDE_SKILL_DIR}/scripts/add-agent-cli.sh" <app-folder> <cli-name>
 ```
 
-It copies `Sources/<App>/Agent/` (core, socket, CLI, MCP, example
-commands) and `Main.swift`, moves `@main` to `Main.swift`, starts the socket
-in the main view's `.task`, and makes `build.sh` link
-`~/.local/bin/<cli-name>`. Apps not made from the template: do the same
-by hand, following the script.
+It copies `<App>/Agent/` (core, socket, CLI, MCP, and a `status`
+command), makes `main.swift` run the CLI when there is a command after the
+app's name, starts the socket in `AppDelegate` once the store is open, and
+makes `build.sh` link `~/.local/bin/<cli-name>`. Apps not made from the
+skeleton: do the same by hand, following the script.
 
-Check: the script printed "added the agent CLI", and `swift build` passes.
+Check: the script printed "added the agent CLI", `./build.sh` passes, and
+`<cli-name> status --json` prints `"running": true`.
 
 ## 3. Write the commands
 
-Replace the examples in `Agent/AgentCommands.swift`. Each command has a
+Add the app's commands in `Agent/AgentCommands.swift`, next to `status`.
+The commented examples show list, add, and delete for a `Note` entity. Each command has a
 name, a one-line summary, its params, a full example, its mark
 (`readOnly` or `destructive`), and a `run` that uses the same model code
 as the window's buttons. Never copy logic: call the function the button
 calls.
 
-- Every model an agent touches gets `var uuid: UUID = UUID()`. Commands
+- Every entity an agent touches has a `uuid` attribute. Commands
   show the first 8 characters as `id`, and accept any unique start of it.
 - Results are small JSON objects: the fields an agent needs, not the
   whole model. Lists take `--limit` and `--offset`, and return `total`

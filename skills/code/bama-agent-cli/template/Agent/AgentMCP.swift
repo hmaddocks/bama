@@ -6,6 +6,7 @@ import Foundation
 ///   claude mcp add --scope user __CLI_NAME__ -- ~/Applications/__APP_NAME__.app/Contents/MacOS/__APP_NAME__ mcp
 /// Optional: Claude Code drives the CLI fine without it. Use it for Claude
 /// Desktop and other clients that have no shell.
+@MainActor
 enum AgentMCP {
     static func serve() {
         while let line = readLine(strippingNewline: true) {

@@ -11,18 +11,21 @@ with `icon.json` and SVG layers in `Assets/`. You write both by hand.
 macOS adds the glass, the highlights, the shadow, the mask, and the dark,
 tinted, and clear looks. You never draw those yourself.
 
-- `tools/make_icon.sh` compiles it with `actool` into `Resources/Assets.car`
-  and `Resources/AppIcon.icns`. `build.sh` runs it when the icon changed.
+- Xcode compiles it into `Assets.car` and `AppIcon.icns` when the app
+  builds: `project.yml` lists `Icon/AppIcon.icon` as a source, with
+  `ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon` and `CFBundleIconName:
+  AppIcon`.
+- `tools/make_icon.sh` checks it by compiling it with `actool`, without
+  building the app.
 - `tools/icon_review.sh` renders it with `ictool` (Icon Composer's command
   line tool, inside Xcode) into one contact sheet you read.
 
 Older app without these files: copy `Icon/`, `tools/make_icon.sh`,
 `tools/icon_review.sh`, and `tools/icon_sheet.swift` from the
-`bama-new-app` template, the icon block of its `build.sh`, and
-`CFBundleIconName` = `AppIcon` from its `Info.plist.in`.
+`bama-new-app` template, and add the icon lines of its `project.yml`.
 
 Other cases: [more-cases.md](more-cases.md).
-- An Xcode or XcodeGen project (Xcode compiles the `.icon` itself).
+- An Xcode project, or an asset catalog that still has `AppIcon.appiconset`.
 - Converting an existing flat icon into layers.
 - A Dock icon that changes with a theme or style. `NSApp.applicationIconImage`
   shows a flat picture, so render glass versions ahead of time.
@@ -98,7 +101,7 @@ Icon/AppIcon.icon/
 
    ```bash
    tools/make_icon.sh
-   # wrote Resources/Assets.car and Resources/AppIcon.icns
+   # PASS the icon compiles (Assets.car and AppIcon.icns)
    ```
 
    Check: the line above prints. On an error, fix the file it names.
@@ -141,8 +144,11 @@ after they save.
 - `xcrun ictool` is a different tool. Icon Composer's `ictool` lives at
   `$(xcode-select -p)/../Applications/Icon Composer.app/Contents/Executables/ictool`.
 - The icon needs `CFBundleIconName` = `AppIcon` in `Info.plist` and
-  `Assets.car` in `Contents/Resources`. `AppIcon.icns` covers older Finder
-  views and macOS 15.
+  `Assets.car` in `Contents/Resources`. Check the built app's
+  `Contents/Resources` after `./build.sh`. `AppIcon.icns` covers older
+  Finder views.
+- `actool` and `ictool` ship with Xcode. The scripts pin it, so they work
+  while the Command Line Tools are selected.
 
 Done when `tools/make_icon.sh` succeeds, the contact sheet shows a clear
 glyph in all four looks and at 16 pt, the icon uses no SF Symbol, and the

@@ -1,4 +1,5 @@
 import Foundation
+import __APP_NAME__Core
 
 // The agent interface: one list of commands (AgentCommands.swift) that the
 // CLI, its help, and the MCP server all read. Commands run inside the app,
@@ -7,6 +8,7 @@ import Foundation
 typealias JSONObject = [String: Any]
 
 /// One thing an agent can do. Keep names as "<noun> <verb>": "items add".
+@MainActor
 struct AgentCommand {
     struct Param {
         enum Kind: String { case string, integer, boolean }
@@ -26,10 +28,11 @@ struct AgentCommand {
     var readOnly = false
     /// Removes data or cannot be undone. Without --yes it only reports what it would do.
     var destructive = false
-    var run: (Args, AppModel) throws -> Any
+    var run: (Args, Store) throws -> Any
 }
 
 /// The values a command was called with, checked against its params.
+@MainActor
 struct Args {
     var values: [String: String]
 
@@ -74,8 +77,9 @@ nonisolated struct AgentError: Error {
 }
 
 /// Runs requests from the socket inside the app.
+@MainActor
 enum AgentRouter {
-    static var model: AppModel?
+    static var store: Store?
 
     /// A request is {"command": "items add", "args": {"title": "Milk"}}.
     static func handle(_ request: Data) -> Data {
@@ -86,9 +90,9 @@ enum AgentRouter {
             guard let command = AgentCommands.all.first(where: { $0.name == name }) else {
                 throw AgentError.usage("unknown command \"\(name)\". Run `__CLI_NAME__ help`")
             }
-            guard let model else { throw AgentError.unavailable("the app is still starting. Try again") }
+            guard let store else { throw AgentError.unavailable("the app is still starting. Try again") }
             let args = Args(values: object["args"] as? [String: String] ?? [:])
-            reply = ["ok": true, "result": try command.run(args, model)]
+            reply = ["ok": true, "result": try command.run(args, store)]
         } catch let error as AgentError {
             reply = error.json
         } catch {
