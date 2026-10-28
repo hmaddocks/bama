@@ -151,7 +151,7 @@ Accessibility Inspector audit shows no issues for the new views.
 
 ## 8. Write the UX block
 
-Add the result under the story's acceptance lines:
+Add the result under the ticket's acceptance lines:
 
 ```markdown
 UX:

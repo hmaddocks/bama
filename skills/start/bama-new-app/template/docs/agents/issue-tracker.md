@@ -27,17 +27,21 @@ server, tagged #__BEAR_TAG__.
 
 1. **Frontier**: the first ticket under the milestone that is incomplete,
    unblocked, `Status: open`, and tagged ready-for-agent.
-2. **Claim**: set `Status: claimed` before any work.
+2. **Claim**: `tools/omnifocus-setup.sh __APP_NAME__ status <task-id> claimed`
+   before any work.
 3. Do the work on the integration branch. One commit per ticket.
-4. **Resolve**: append an "Answer" section (the commit and anything a
-   reader would not guess), set `Status: resolved`, and complete the
-   sub-action.
+4. **Resolve**: `tools/omnifocus-setup.sh __APP_NAME__ resolve <task-id> "<answer>"`
+   appends an "Answer" section (the commit and anything a reader would not
+   guess), sets `Status: resolved`, and completes the sub-action.
 5. Add one line under the milestone's "Decisions so far:".
 
-## Tags
+## Tags and status
 
 The OmniFocus MCP server finds a tag by its bare name and cannot nest
 tags. Other projects have their own ready-for-agent tag, so the server
 would pick the wrong one. Tag tickets with
 `tools/omnifocus-setup.sh __APP_NAME__ tag <task-id> <tag>`, which looks
 the tag up inside the app's own group.
+
+The server can only replace a whole note, so change a ticket's status
+with the script's `status` and `resolve` modes, not by rewriting the note.

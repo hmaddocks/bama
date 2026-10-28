@@ -33,7 +33,14 @@ The frontier is the first ticket under the milestone that is:
 - tagged ready-for-agent from "<App> triage"
 - not blocked: every ticket on its `Blocked by:` line is complete
 
-Set its note's status line to `Status: claimed` before any work. Read the
+Claim it before any work:
+
+```bash
+tools/omnifocus-setup.sh <App> status <task-id> claimed
+```
+
+The OmniFocus MCP server can only replace a whole note, so status changes
+go through this script. Read the
 milestone's spec in Bear, "<App> spec: <milestone>", for context.
 
 No frontier left? Go to step 7.
@@ -89,8 +96,9 @@ Snapshot only the pages a ticket touches (`APP_SNAPSHOT_PAGES`), and the
 full set when the milestone is done.
 
 Fix, rebuild, and compare again. Three rounds per ticket at most. If it
-still does not match, set the ticket back to `Status: open`, append a
-"Blocked" line that says what is blocking, and move on.
+still does not match, set it back with `tools/omnifocus-setup.sh <App>
+status <task-id> open`, add a "Blocked" line to its note that says what is
+blocking, and move on.
 
 ## 6. Commit and resolve
 
@@ -105,10 +113,16 @@ milestone may land as one commit when its tickets share one skeleton
 
 Then, in OmniFocus:
 
-1. Append an `Answer` section to the ticket's note: the commit hash, and
-   anything a reader would not guess from the ticket.
-2. Set `Status: resolved` and complete the sub-action.
-3. Add one line under the milestone's "Decisions so far:" when the ticket
+1. Resolve the ticket. The answer is the commit hash, and anything a
+   reader would not guess from the ticket:
+
+   ```bash
+   tools/omnifocus-setup.sh <App> resolve <task-id> "Commit abc1234. ..."
+   ```
+
+   It appends an `Answer` section, sets `Status: resolved`, and completes
+   the sub-action.
+2. Add one line under the milestone's "Decisions so far:" when the ticket
    settled a choice.
 
 A new term or a decision that rules out an obvious alternative also goes
