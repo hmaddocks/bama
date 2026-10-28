@@ -1,6 +1,6 @@
 ---
 name: bama-build-and-verify
-description: Build an AppKit macOS app from the command line, install it, and check light and dark window snapshots of every page before calling a change done. Use after any UI code change, when a build fails, or when the user asks to run, screenshot, or check the app.
+description: Build an AppKit Mac app or a UIKit iPhone and iPad app from the command line, install it, and check light and dark snapshots of every page before calling a change done. Use after any UI code change, when a build fails, or when the user asks to run, screenshot, or check the app.
 allowed-tools: Bash(./build.sh*) Bash(bin/test*) Bash(tools/*) Bash(*/Contents/MacOS/*) Bash(open *) Read
 ---
 
@@ -12,6 +12,9 @@ A change is done when four things are true:
 2. You looked at the light and dark snapshots of every page you touched.
 3. The snapshots match what the ticket or reference screenshot asks for.
 4. The grid lint passes (`bama-layout-grid` skill).
+
+A change to the iOS target? Steps 1 and 2 have iOS commands: see
+"iPhone and iPad" below. Steps 3 to 6 are the same.
 
 App not made from the `bama-new-app` skeleton (a committed Xcode project, a
 SwiftUI app, a menu bar utility, Swift 5)? Map the commands below with
@@ -113,6 +116,38 @@ during the run, or the page's `show` closure returned nil. Computer use
 hides apps it does not control, and so does Hide Others. Run it again, and
 avoid using computer use in another session at the same time.
 
+### iPhone and iPad
+
+```bash
+./build.sh --ios              # build, install and launch in the iPhone 17 simulator
+SIM_DEVICE="iPad Pro 11-inch (M5)" ./build.sh --ios
+./build.sh --ios --device     # the connected iPhone or iPad
+tools/snap-ios.sh
+# SNAPSHOT /tmp/<AppName>-shots-ios/main-iphone-light.png
+# ...
+# SNAPSHOT /tmp/<AppName>-shots-ios/main-ipad-dark.png
+```
+
+`tools/snap-ios.sh` builds first, then runs snapshot mode on the iPhone 17
+in portrait and the iPad Pro 11-inch in landscape, each on a fresh /tmp
+store with seed data. The simulator shares the Mac's `/tmp`, and
+`SIMCTL_CHILD_` passes the `APP_` variables to the app. Pages are
+registered in `SceneDelegate.snapshotPages`.
+
+- `simctl launch` exits 0 whatever the app does. The scripts read its
+  output (`SNAPSHOT done`, `SELFTEST PASS`) instead.
+- iPadOS 26 does not let an app rotate itself in the simulator. Landscape
+  iPad images lay the root view out at the landscape size and draw it off
+  screen. A page with a sheet open is drawn in portrait instead, and its
+  line ends with `(portrait: a sheet is open)`: that is expected.
+- Simulator captures need no Screen Recording permission, and nothing
+  else on the screen can hide them.
+- Without Simulator.app the simulator runs headless. `build.sh` opens its
+  window only when it is installed.
+
+Check: four PNGs per page you touched (iPhone and iPad, light and dark),
+and the last line of each device is `SNAPSHOT done`.
+
 ## 3. Check the grid
 
 ```bash
@@ -129,16 +164,17 @@ Open every PNG with the Read tool and check, in this order:
 - Nothing is blank, clipped, or overlapping. Text fits. Sidebars show their items.
 - Dark mode is readable. No fixed white or black surfaces.
 - The page matches the ticket or the reference screenshot (layout, labels, order).
-- The `bama-mac-design` rules hold: glass only on controls, one accent,
-  SF Symbols, system text styles, empty states that invite the first action.
+- The `bama-mac-design` rules hold (on iOS, `bama-ios-design`): glass only
+  on controls, one accent, SF Symbols, system text styles, empty states
+  that invite the first action.
 
 Describe what you see in one or two sentences per page in your report, and
 name the PNG paths so the user can open them.
 
 ## 5. Interaction checks
 
-Snapshots show state, not behavior. Run `tools/selftest.sh` (exit 0 when
-every check passes) and add a check for each new action whose model or
+Snapshots show state, not behavior. Run `tools/selftest.sh`, or
+`tools/selftest-ios.sh` for the iOS target (exit 0 when every check passes), and add a check for each new action whose model or
 storage behavior a unit test cannot reach. The `bama-test-app` skill covers
 unit tests, the self-test, key events, the menu check from outside, and a
 debug bridge.

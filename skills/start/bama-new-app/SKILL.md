@@ -1,27 +1,29 @@
 ---
 name: bama-new-app
-description: Create a native macOS AppKit app from a skeleton that builds, tests, and snapshots on day one (XcodeGen project, Core Data core package, build script, snapshot mode, self-test, git). Use when the user wants to start a new Mac app or scaffold a macOS project.
-argument-hint: "<AppName> <bundle-id> [parent-folder]"
-allowed-tools: Bash(*/new-app.sh *) Bash(git *) Bash(./build.sh *) Bash(bin/test *) Bash(tools/*) Read Write Edit
+description: Create a native app for Mac (AppKit), iPhone and iPad (UIKit), or both from a skeleton that builds, tests, and snapshots on day one (XcodeGen project, Core Data core package, build script, snapshot mode, self-test, git). Use when the user wants to start a new app or scaffold a project, or add iPhone and iPad to a Mac app.
+argument-hint: "<AppName> <bundle-id> [parent-folder] [--platforms mac|ios|both]"
+allowed-tools: Bash(*/new-app.sh *) Bash(*/add-ios.sh *) Bash(git *) Bash(./build.sh *) Bash(bin/test *) Bash(tools/*) Read Write Edit
 ---
 
-# New Mac app
+# New app
 
-The template is a skeleton, not a starter app: one empty window, the menu
-bar, an empty Core Data model, and the plumbing every feature needs. It
+The template is a skeleton, not a starter app: one empty window (and on
+iOS, one empty screen), the menu bar, an empty Core Data model, and the
+plumbing every feature needs. It
 builds and runs as is, so the first build proves the toolchain before any
 feature code. Everything a person sees comes from the first milestone's
 tickets.
 
 ## What the skeleton is
 
-An AppKit app laid out like Cashflow: an app target, a local Swift package
-for the logic, and an Xcode project generated from `project.yml`.
+Laid out like Cashflow: an AppKit target for the Mac, a UIKit target for
+iPhone and iPad, or both, sharing a local Swift package for the logic, in
+an Xcode project generated from `project.yml`.
 
 ```text
 <AppName>/
-  project.yml            XcodeGen: macOS 26 app target, depends on <AppName>Core
-  build.sh               xcodegen -> xcodebuild -> ~/Applications -> codesign
+  project.yml            XcodeGen: the macOS 26 and iOS 26 targets, both depend on <AppName>Core
+  build.sh               xcodegen -> xcodebuild -> ~/Applications, or the simulator or a device with --ios
   bin/test               swift test for <AppName>Core, with a full Xcode pinned
   AGENTS.md              architecture, build, check, design, and writing rules (CLAUDE.md links to it)
   CONTEXT.md             glossary and decisions
@@ -37,6 +39,11 @@ for the logic, and an Xcode project generated from `project.yml`.
     Snapshot.swift       APP_SNAPSHOT mode: every registered page, light and dark
     SelfTest.swift       --selftest: PASS or FAIL per check, exit code
     SeedData.swift       APP_SEED=1 sample data for snapshots
+  <AppName>iOS/          the iPhone and iPad app (--platforms ios or both)
+    AppDelegate.swift    @main; UIKit needs no xib
+    SceneDelegate.swift  opens the store and the window with one empty screen
+    DesignTokens.swift   the same tokens as UIColor
+    Snapshot.swift, SelfTest.swift, SeedData.swift  the same contracts as the Mac
   <AppName>Core/
     Package.swift        no AppKit or UIKit, macOS 26 and iOS 26
     Sources/<AppName>Core/Persistence/
@@ -45,16 +52,16 @@ for the logic, and an Xcode project generated from `project.yml`.
     Plugins/CoreDataModelPlugin  compiles the model for swift test
     Tests/<AppName>CoreTests     Swift Testing
   tools/
-    snap.sh              snapshots with seed data on a /tmp store
-    selftest.sh          the self-test on a /tmp store
+    snap.sh, selftest.sh          the Mac snapshots and self-test on a /tmp store
+    snap-ios.sh, selftest-ios.sh  the same in the simulator
     grid-lint.sh         flags spacing numbers off the 4 pt scale
     omnifocus-setup.sh   ticket tags and status (bama-app-brief)
     make_icon.sh, icon_review.sh, icon_sheet.swift  check and review the icon
 ```
 
-There is no sidebar, list, Settings window, or sample data. Build them from
-tickets with the recipes in `bama-swift` (split view, table view, sheets,
-menu validation, undo).
+There is no sidebar, list, tab bar, Settings window, or sample data. Build
+them from tickets with the recipes in `bama-swift` (appkit-recipes.md and
+uikit-recipes.md).
 
 ## Steps
 
@@ -70,16 +77,20 @@ menu validation, undo).
    Check: all three print a version. `new-app.sh` stops with the fix when
    one is missing.
 
-2. Pick the name (one UpperCamelCase word) and bundle id (reverse DNS). If
-   a Bear note "<AppName> brief" exists, use its name.
+2. Pick the name (one UpperCamelCase word), bundle id (reverse DNS), and
+   platforms: `mac`, `ios` (iPhone and iPad), or `both`. If a Bear note
+   "<AppName> brief" exists, use its name and its `Platforms:` line.
+   Without one, the platform is `mac`.
 
 3. Run the script with the parent folder. It copies the skeleton, renames
    every `__APP_NAME__` file and folder, fills in the name, bundle id and
-   Bear tag, runs `git init`, and commits. It keeps files already there,
-   such as the agent docs from `bama-app-brief`.
+   Bear tag, keeps the targets for the platforms, fills the signing team
+   from your Apple Development certificate, runs `git init`, and commits.
+   It keeps files already there, such as the agent docs from
+   `bama-app-brief`.
 
    ```bash
-   "${CLAUDE_SKILL_DIR}/scripts/new-app.sh" Tasks com.yourname.tasks ~/Developer
+   "${CLAUDE_SKILL_DIR}/scripts/new-app.sh" Tasks com.yourname.tasks ~/Developer --platforms both
    ```
 
    In a Dropbox or iCloud Drive folder the script can take minutes: run it
@@ -90,11 +101,13 @@ menu validation, undo).
 4. Build, install, and open it:
 
    ```bash
-   cd ~/Developer/Tasks && ./build.sh --open
+   cd ~/Developer/Tasks && ./build.sh --open    # the Mac app
+   ./build.sh --ios                             # the iOS app in the iPhone 17 simulator
    ```
 
-   Check: one empty window titled with the app's name, and the App, File,
-   Edit, View, Window, and Help menus.
+   Check: the Mac app shows one empty window titled with the app's name,
+   and the App, File, Edit, View, Window, and Help menus. `--ios` prints
+   `installed <AppName>iOS in the iPhone 17 simulator`.
 
 5. Run the checks the skeleton ships with, then look at the snapshots
    (`bama-build-and-verify` skill):
@@ -104,11 +117,25 @@ menu validation, undo).
    tools/selftest.sh      # SELFTEST PASS, exit 0
    tools/snap.sh          # /tmp/Tasks-shots/main-light.png and main-dark.png
    tools/grid-lint.sh     # PASS grid-lint
+   tools/selftest-ios.sh  # with an iOS target: SELFTEST PASS
+   tools/snap-ios.sh      # with an iOS target: /tmp/Tasks-shots-ios/main-iphone-light.png and more
    ```
 
-   Check: every command passes.
+   Check: every command for the app's platforms passes.
 
 Features go through `bama-improve-loop`, one ticket at a time.
+
+## Add iPhone and iPad to a Mac app
+
+```bash
+"${CLAUDE_SKILL_DIR}/scripts/add-ios.sh" ~/Developer/Tasks
+```
+
+It copies `<AppName>iOS/` and the iOS tools, appends the iOS target to
+`project.yml`, and shares the icon with iOS. Move any seed data into
+`<AppName>iOS/SeedData.swift`, run `./build.sh --ios`,
+`tools/selftest-ios.sh` and `tools/snap-ios.sh`, then commit. It needs
+`targets:` to be the last section of `project.yml`, as the skeleton has it.
 
 ## Signing
 
@@ -118,6 +145,14 @@ certificate in the keychain, or ad hoc without one. Permissions
 path. Ad hoc builds ask again after every rebuild. A free Apple ID makes a
 certificate in Xcode > Settings > Accounts > Manage Certificates. Install
 to the same path every time.
+
+The iOS target signs automatically with the team in `project.yml`
+(`DEVELOPMENT_TEAM`). Simulator builds need no signing.
+`./build.sh --ios --device` installs on a connected iPhone or iPad: connect
+it with a cable, unlock it, tap Trust, and turn on Developer Mode
+(Settings > Privacy & Security). The first device build registers the
+device. Without a certificate, `DEVELOPMENT_TEAM` is empty; add your team
+id to use a device.
 
 ## A CLI for agents
 
@@ -141,6 +176,8 @@ the window updates live.
   `AppDelegate.swift`.
 - Concurrency or Core Data errors: call the Skill tool with `bama-swift`.
 
-Done when the app opens from `~/Applications` with one empty window and its
-menu bar, `bin/test`, `tools/selftest.sh`, `tools/snap.sh` and
-`tools/grid-lint.sh` pass, and the first commit exists.
+Done when the first commit exists, `bin/test` and `tools/grid-lint.sh`
+pass, and for each platform: the Mac app opens from `~/Applications` with
+one empty window and its menu bar, and `tools/selftest.sh` and
+`tools/snap.sh` pass; the iOS app launches in the simulator, and
+`tools/selftest-ios.sh` and `tools/snap-ios.sh` pass.

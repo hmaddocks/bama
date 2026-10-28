@@ -1,6 +1,6 @@
 ---
 name: bama-app-icon
-description: Liquid Glass macOS app icon made as an Icon Composer file (Icon/AppIcon.icon, JSON plus SVG layers), compiled with actool, and reviewed in every look with ictool. Use when the user wants an app icon, a better icon, or a Dock icon.
+description: Liquid Glass app icon for Mac, iPhone and iPad made as one Icon Composer file (Icon/AppIcon.icon, JSON plus SVG layers), compiled with actool, and reviewed in every look with ictool. Use when the user wants an app icon, a better icon, or a Dock or Home Screen icon.
 allowed-tools: Bash(tools/make_icon.sh) Bash(tools/icon_review.sh) Bash(./build.sh *) Read Edit Write
 ---
 
@@ -8,8 +8,9 @@ allowed-tools: Bash(tools/make_icon.sh) Bash(tools/icon_review.sh) Bash(./build.
 
 The icon is an Icon Composer file in git: `Icon/AppIcon.icon`, a folder
 with `icon.json` and SVG layers in `Assets/`. You write both by hand.
-macOS adds the glass, the highlights, the shadow, the mask, and the dark,
-tinted, and clear looks. You never draw those yourself.
+The system adds the glass, the highlights, the shadow, the mask, and the
+dark, tinted, and clear looks. You never draw those yourself. One file
+serves the Mac and the iOS targets.
 
 - Xcode compiles it into `Assets.car` and `AppIcon.icns` when the app
   builds: `project.yml` lists `Icon/AppIcon.icon` as a source, with
@@ -56,6 +57,9 @@ Icon/AppIcon.icon/
 }
 ```
 
+- `supported-platforms`: `"squares" : [ "macOS" ]` for a Mac-only app,
+  `"squares" : "shared"` for an app with an iOS target. `new-app.sh` and
+  `add-ios.sh` set it.
 - `fill` is the background: `solid`, `automatic-gradient` (one color, the
   system adds a soft gradient), or `linear-gradient` with two colors.
   Colors are `srgb:r,g,b,a` or `display-p3:r,g,b,a`.
@@ -117,6 +121,10 @@ Icon/AppIcon.icon/
    Default at 32 and 16 pt. The glyph reads in every look and is still
    recognizable at 16 pt. If not, make it bigger, bolder, or simpler.
 
+   With an iOS target, also run `tools/icon_review.sh --ios` (writes
+   `/tmp/<AppName>-icon-ios.png`): the same looks in the iOS shape, then
+   60 pt (Home Screen) and 29 pt (Settings).
+
 5. Iterate two or three times. Change one thing per round: glyph size,
    layer opacity, background color.
 
@@ -128,7 +136,8 @@ Icon/AppIcon.icon/
 
    If the Dock still shows the old icon, macOS cached it. Run
    `touch ~/Applications/<AppName>.app` and restart the app. As a last
-   resort, `killall Dock`.
+   resort, `killall Dock`. On iOS, `./build.sh --ios` installs it in the
+   simulator; the built app has `AppIcon60x60@2x.png` next to `Assets.car`.
 
 The user can fine-tune the file by hand in Icon Composer:
 `open -a "Icon Composer" Icon/AppIcon.icon`. Run `tools/make_icon.sh`
@@ -151,5 +160,6 @@ after they save.
   while the Command Line Tools are selected.
 
 Done when `tools/make_icon.sh` succeeds, the contact sheet shows a clear
-glyph in all four looks and at 16 pt, the icon uses no SF Symbol, and the
-Dock shows the new icon.
+glyph in all four looks and at 16 pt (and the `--ios` sheet at 29 pt for
+an app with an iOS target), the icon uses no SF Symbol, and the Dock shows
+the new icon.

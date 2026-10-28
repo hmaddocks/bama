@@ -1,9 +1,9 @@
 ---
 name: bama-test-app
-description: Test a macOS app at three levels, from Swift Testing unit tests and an in-app self-test to a debug bridge that lets an agent drive the running app and read its state, plus computer use for real clicks. Use when adding logic, fixing a bug, before a release, or when the user asks for tests, end-to-end checks, or "make sure it works".
+description: Test a Mac, iPhone or iPad app at three levels, from Swift Testing unit tests and an in-app self-test to a debug bridge that lets an agent drive the running Mac app and read its state, plus computer use for real clicks. Use when adding logic, fixing a bug, before a release, or when the user asks for tests, end-to-end checks, or "make sure it works".
 ---
 
-# Test a Mac app
+# Test an app
 
 Three levels, cheapest first. Each new ticket gets the cheapest level that
 can prove its acceptance lines. A bug fix starts with a test that fails.
@@ -67,7 +67,19 @@ tools/selftest.sh
 ```
 
 Always point it at a store in `/tmp`; the app refuses otherwise. Add each
-check to `<App>/SelfTest.swift` with `check("name", condition)`. The
+check to `<App>/SelfTest.swift` with `check("name", condition)`.
+
+The iOS target has its own `<App>iOS/SelfTest.swift` with the same
+`check`. Run it in the simulator:
+
+```bash
+tools/selftest-ios.sh
+# or: SIMCTL_CHILD_APP_STORE=/tmp/<App>-self-ios.sqlite xcrun simctl launch --console-pty booted <bundle-id> --selftest
+```
+
+`simctl launch` exits 0 whatever the app does, so the script reads the
+`SELFTEST PASS` line. A check that both platforms need (a delete rule,
+saving and reopening) belongs in `<App>Core` as a unit test, once. The
 self-test is where model and storage behavior is proven: delete rules,
 saving and reopening the store, undo.
 
@@ -91,7 +103,7 @@ for a test target with no host app.
 
 ### Key events and menu audit
 
-The self-test can press real keys without computer use:
+On the Mac, the self-test can press real keys without computer use:
 
 ```swift
 let event = NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [],
@@ -152,6 +164,9 @@ after touching commands.
   keeps the PASS lines before it.
 
 ## 3. Debug bridge
+
+Mac only. On iOS, prove behavior with unit tests and the self-test, and
+check by hand on a device what neither can reach.
 
 For behavior a self-test cannot reach: global shortcuts, floating panels,
 window control, permissions, timing. The running app listens for commands

@@ -39,8 +39,11 @@ rsync -a --ignore-existing "$template/" "$dest/"
 # `targets:`; the Mac target sits between the mac-target markers.
 if [[ "$platforms" == mac ]]; then
   rm -rf "$dest/__APP_NAME__iOS" "$dest"/tools/{snap,selftest}-ios.sh
+  sed -i '' '/<!-- ios-begin -->/,/<!-- ios-end -->/d' "$dest/AGENTS.md"
 else
   cat "$dest/project-ios.yml" >> "$dest/project.yml"
+  # One icon for every platform: "shared" squares are macOS, iOS and iPadOS.
+  sed -i '' 's/"squares" : \[ "macOS" \]/"squares" : "shared"/' "$dest/Icon/AppIcon.icon/icon.json"
 fi
 rm "$dest/project-ios.yml"
 if [[ "$platforms" == ios ]]; then
@@ -74,4 +77,5 @@ cd "$dest"
 git add -A
 git commit -qm "Create $name from the app template ($platforms)"
 echo "created $dest"
-echo "next: cd \"$dest\" && ./build.sh --open"
+[[ "$platforms" == ios ]] && run="./build.sh --ios" || run="./build.sh --open"
+echo "next: cd \"$dest\" && $run"

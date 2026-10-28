@@ -29,6 +29,21 @@ for f in "$template"/__APP_NAME__iOS/*.swift; do
   fill "$f" > "$app_dir/${name}iOS/${f:t}"
 done
 fill "$template/project-ios.yml" >> "$app_dir/project.yml"
+# AGENTS.md gets the iPhone and iPad section, before "## Git".
+if [[ -f "$app_dir/AGENTS.md" ]] && ! grep -q "ios-begin" "$app_dir/AGENTS.md"; then
+  section=$(mktemp)
+  sed -n '/<!-- ios-begin -->/,/<!-- ios-end -->/p' "$template/AGENTS.md" | fill /dev/stdin > "$section"
+  if grep -q "^## Git" "$app_dir/AGENTS.md"; then
+    awk -v f="$section" '/^## Git/ { while ((getline l < f) > 0) print l; print "" } { print }' "$app_dir/AGENTS.md" > "$section.new"
+    mv "$section.new" "$app_dir/AGENTS.md"
+  else
+    { echo; cat "$section"; } >> "$app_dir/AGENTS.md"
+  fi
+  rm -f "$section"
+fi
+# The icon is shared by every platform: "shared" squares are macOS, iOS and iPadOS.
+icon_json="$app_dir/Icon/AppIcon.icon/icon.json"
+[[ -f "$icon_json" ]] && sed -i '' 's/"squares" : \[ "macOS" \]/"squares" : "shared"/' "$icon_json"
 mkdir -p "$app_dir/tools"
 for f in snap-ios.sh selftest-ios.sh; do
   fill "$template/tools/$f" > "$app_dir/tools/$f"

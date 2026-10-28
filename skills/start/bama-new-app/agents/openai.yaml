@@ -1,3 +1,3 @@
 interface:
-  display_name: "New Mac App"
-  short_description: "AppKit skeleton that builds on day one"
+  display_name: "New App"
+  short_description: "AppKit and UIKit skeleton that builds on day one"
