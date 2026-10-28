@@ -1,137 +1,128 @@
 ---
 name: bama-design-system
-description: Accent color and design system for a macOS app, from the app's accent and the accent picker in Settings to Swift tokens in code plus a DESIGN.md at the repo root that says which token to use when. Use when the user wants a brand or accent color, wants people to pick a color, when an app has more than a few screens, when screens drift apart or animations feel inconsistent, or when the user asks for themes, a style guide, or design tokens.
+description: Design tokens for an AppKit app, the Cashflow way: DesignTokens.swift in code and a DESIGN.md at the repo root that says which token to use when. Use when the user wants a brand or accent colour, when an app has more than a few screens, when screens drift apart or colours and spacing feel inconsistent, or when the user asks for a style guide or design tokens.
 ---
 
 # Design system
 
 A design system is a short list of **tokens** in code and one page that
-says which token to use when. Every screen uses tokens, never raw values.
-Then a change in one place changes the whole app, and an agent can review a
-screen against one page.
+says which token to use when. Every view uses tokens or system colours,
+never raw values. Then a change in one place changes the whole app, and an
+agent can review a screen against one page.
 
-Start from `bama-mac-design`. Tokens cover only what the system does not:
-the accent, custom surfaces, radii, motion, overlays, and custom controls.
+The skeleton has both files: `<App>/DesignTokens.swift` and `DESIGN.md`.
+They start almost empty on purpose. Start from `bama-mac-design`: tokens
+cover only what the system does not, and a token is added when a view first
+needs it. The app keeps Apple's look and native controls. To take the
+colours, type, and spacing of an app the user names, call the Skill tool
+with `bama-design-from-app`.
 
-The app keeps Apple's look and native controls. To take the colors, type,
-and spacing of an app the user names, call the Skill tool with
-`bama-design-from-app`.
+There is no accent picker or theme store. The accent is the one the person
+set for their Mac (`.controlAccentColor`). A picker is built only when a
+milestone asks for it, as a departure from the default.
 
-The template already has the base in `Sources/<App>/UI/`:
+## 1. Read the look
 
-- `Theme.swift`: the accent colors (`Theme.all`), the saved choice
-  (`ThemeStore`), the tokens `Palette.accent`, `Palette.accentText`,
-  `Palette.onAccent`, and `.themed()`, which tints every scene.
-- `AppearanceSettings.swift`: Settings > Appearance, where people pick the
-  accent. Light and dark mode follow the Mac. Apple advises against an
-  app-specific mode setting; add a System/Light/Dark picker only when the
-  owner asks for one, with System as the default. [HIG Dark Mode]
-- `Grid.swift`: spacing (see the `bama-layout-grid` skill).
+Read `## Look` in the Bear note "<App> brief".
 
-## 1. Pick the accent
+- No colour named: keep the system accent. Selection, buttons, and focus
+  rings use `.controlAccentColor` and the system's selection colours, so
+  they follow the person's choice and the accessibility settings.
+- A brand colour: add one token, `brand`, with a light and a dark value.
+  Use it sparingly: the app icon, an empty state, one hero element in the
+  content. Keep it off controls, selection, and focus rings, which stay
+  system. [HIG Color, Branding]
 
-Read `## Look` in the Bear note "<App> brief". With no color named, keep `system`: it
-follows the accent color the person set for their Mac.
-
-For a brand color, set `ThemeStore.brand` to a `Theme` with three shades:
-`light` (accent text in dark mode), `base` (fills and tint), and `deep`
-(accent text in light mode). Set `darkText: true` when white text on
-`base` is hard to read (yellow, mint, cyan). Keep
-`ThemeStore.defaultID = "system"`. The brand then shows only while the
-Mac's accent is Multicolor, as in Apple's apps. Any other accent the person
-chose for their Mac wins, and so do sidebar icons, which people expect in
-their own accent. [HIG Color, Sidebars]
-
-Use brand color sparingly: the app icon, an empty state, one hero element
-in the content. Keep it off most controls. [HIG Branding]
-
-To compare colors, take snapshots with `APP_ACCENT=<id>` for two or three
-of them and show the user the PNGs. Keep the picker in Settings, so people
-can still choose their own color.
-
-Check: `ThemeStore.defaultID` is "system", and the snapshots show the
-accent on buttons, toggles, and selection in light and dark mode.
+Check: you can say which colours the app uses beyond system colours, and
+why each one exists.
 
 ## 2. Collect
 
-New app with no views yet? Skip this step: write the token files with the
-defaults below before the first view.
+New app with no views yet? Skip this step.
 
-Existing app: read every view. List each raw value you find: hex colors, opacities,
-corner radii, paddings, frame widths, animation durations and curves,
-custom button styles. Group them. Most apps have 3 to 5 of each where 1 or
-2 are meant.
+Existing app: read every view. List each raw value you find: hex colours,
+`NSColor(red:...)`, opacities, corner radii, constraint constants, fonts
+with a fixed size, animation durations. Group them. Most apps have 3 to 5
+of each where 1 or 2 are meant.
+
+Check: every raw value is in a group, and each group has the one or two
+values it should have.
 
 ## 3. Write the tokens
 
-Accent values live in `Theme.swift`. The rest get one file per group in
-`Sources/<App>/UI/`. Add each token when the app first needs it:
+Everything goes in `DesignTokens.swift`, one `// MARK:` section per group,
+each added when the app first needs it:
 
-| File | Holds |
+| Group | Holds |
 | --- | --- |
-| `Theme.swift` | the accents, `ThemeStore`, `.themed()`, and `Palette`: `accent`, `onAccent` (text and symbols on accent fills), `accentText` (accent-colored text: deep shade in light mode, light shade in dark mode) |
-| `Grid.swift` | the spacing scale (`Space`) and the layout probes |
-| `Surfaces.swift` | `surface`, `surfaceHover`, `hairline`, one warning color |
-| `Radius.swift` | `xs 6` chips and key caps, `sm 8` controls, `row 10` row hover fills, `md 12` cards, `lg 18` widgets, `xl 26` floating glass |
-| `Layout.swift` | `contentWidth`, fixed column and sheet widths |
-| `Motion.swift` | `hover`, `quick` (presses, small flips), `ui`, `select` (selection moving through a live list), `appear`, `dismiss`, `glide`, `numberRoll`, `listChange`, loops (`pulse`) that stop under Reduce Motion |
-| `Components.swift` | more control styles: `HoverButtonStyle`, `.hoverFill`, toggles, chips |
-| `Overlay.swift` | one panel builder, one entrance, one exit |
+| Colours | `DesignTokens.dynamic(light: "#...", dark: "#...")` values: surfaces, borders, text for custom surfaces, status colours (`income`, `expense`, `warning`) |
+| Fonts | text roles beyond the system styles, such as `amount` (monospaced digits) |
+| `Space` | the 4 pt spacing scale (already there; see `bama-layout-grid`) |
+| Radius | `sm 6` chips, `md 10` cards, `lg 16` floating panels |
+| Motion | durations for the few custom animations, all skipped under Reduce Motion |
 
-Surfaces adapt to light and dark. Views read the accent through `.tint` or
-`Palette`, so a new choice in Settings redraws the whole app.
+```swift
+// In enum DesignTokens, under // MARK: Colours
+
+/// Positive amounts. The light value is darkened from #059669, which
+/// only reaches 3.7:1 on the window background; this clears 4.5:1.
+static let income = dynamic(light: "#047857", dark: "#34d399")
+```
+
+Every colour that text sits on, or that is text, has a comment with its
+contrast, and clears 4.5:1 (3:1 for text 18 pt and larger). Fix the light
+value, the dark value, or both; never ship a token that fails. [HIG Color,
+WCAG AA]
+
+Check: every raw value from step 2 has a token or a system colour that
+replaces it.
 
 ## 4. Write DESIGN.md
 
-One section per file above. Each section says which token to use when, and
-the rules that go with it. Keep it under 100 lines. Rules that transfer to
-most apps:
+`DESIGN.md` mirrors the code: a Colours table (token, light, dark, use), a
+Type table (role, style, colour), the Spacing scale, and a Components list
+that describes each custom component in a line or two. Keep it under 100
+lines. Rules that transfer to most apps:
 
-- Never hard-code a hex accent. Use `.tint` or `Palette.accent`.
-- Every custom color has four values: light, dark, and a stronger one of
-  each for Increase Contrast (`Color(light:dark:highContrastLight:highContrastDark:)`
-  in `Theme.swift`). [HIG Color]
-- Never redefine or copy a semantic color (`.separator` as text, a label
-  color as a fill). Their values change per release.
-- A custom surface in its neutral state is a little translucent, so it
-  picks up the desktop tint like system surfaces. A colored state is
-  opaque.
-- A custom font only for headings. Body and captions stay in the system
-  font, and every custom font has a bold weight for the Bold Text setting.
-- Accent-colored text uses `Palette.accentText`. Text on an accent fill
-  uses `Palette.onAccent`, never a fixed white.
-- Style controls with `ButtonStyle` and `ToggleStyle`. Never rebuild a
-  control from shapes: it loses the keyboard, focus, and VoiceOver.
+- Never hard-code a colour in a view. Use a token or a system colour.
+- Never redefine or copy a semantic colour (`.separatorColor` as text, a
+  label colour as a fill). Their values change per release.
+- Every custom colour has a light and a dark value. Check it in both
+  appearances and with Increase Contrast. [HIG Color]
+- Accent-coloured text uses a deep shade in light mode and a light shade in
+  dark mode. Text on an accent fill uses
+  `.alternateSelectedControlTextColor`, never a fixed white.
+- System fonts and text styles. A custom font only for headings, with a
+  bold weight for the Bold Text setting.
+- Style a control with its own properties (`bezelStyle`, `controlSize`,
+  `contentTintColor`). Never rebuild a control from shapes: it loses the
+  keyboard, focus, and VoiceOver.
 - Inner corners are concentric: inner radius = outer radius - inset.
-- Every animation goes through `Motion`, so a per-feature "Full, Fast,
-  Off" setting and Reduce Motion apply everywhere.
-- Search results and switchers do not animate. Speed wins.
+- Animations are short, skipped under Reduce Motion
+  (`NSWorkspace.shared.accessibilityDisplayShouldReduceMotion`), and never
+  run on a view's first layout. Search results and switchers do not
+  animate: speed wins.
 - Hover never moves a selection. Only a click or a key does.
-- Units ("KB/s", "%") never animate. Only the number does
-  (`.contentTransition(.numericText())`).
-- Never animate a view's first layout. Overlays wait one frame, then
-  animate opacity, scale, and a few points of travel.
-- Leave room around glass for its shadow (about 3 times the shadow radius).
-- One primary button per page or card.
+- One primary button per window or sheet (`keyEquivalent = "\r"`).
+
+Check: every token in `DesignTokens.swift` has a row or a line in
+`DESIGN.md`, and nothing in `DESIGN.md` is missing from the code.
 
 ## 5. Migrate
 
 Replace raw values screen by screen, one commit per screen. After each,
-build and snapshot (`bama-build-and-verify` skill). The screen looks the same or
-better, never worse.
+build and snapshot (`bama-build-and-verify` skill). The screen looks the
+same or better, never worse.
 
-## 6. Point agents at it
+Check: the snapshots of each migrated screen, light and dark, match or
+improve on the ones before.
 
-Add one line to the app's `AGENTS.md` (create the file if it is missing):
-"Design rules: `DESIGN.md`. Use its tokens; never raw colors,
-radii, or durations."
-
-Done when this finds no hits outside the token files:
+Done when this finds no hits outside `DesignTokens.swift`:
 
 ```bash
-grep -rnE 'cornerRadius: [0-9]{1,2}\b|duration: [0-9]|\.spring\(response|\.snappy\b|\.easeInOut|\.easeOut\(|Color\(hex:|Color\(red:' Sources/ \
-  | grep -v 'Path(roundedRect'
+grep -rnE 'NSColor\((red|hex|srgbRed|calibratedRed|white):|#[0-9a-fA-F]{6}"|cornerRadius = [0-9]|duration = [0-9]|systemFont\(ofSize: [0-9]' <App>/ \
+  | grep -v DesignTokens.swift
 ```
 
-(hex strings in data and comments are fine), and DESIGN.md has a section
-for every token file.
+(hex strings in data and comments are fine), and `DESIGN.md` and
+`DesignTokens.swift` list the same tokens.
