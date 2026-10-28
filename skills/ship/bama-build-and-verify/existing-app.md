@@ -25,7 +25,7 @@ XcodeGen, has none of these. Map each piece first, then follow the skills.
 | `--selftest` launch flag | A `selftest` bridge command (below) |
 | Swift 6, default isolation | Swift 5 mode: migrate (below) or keep it and annotate `@MainActor` |
 
-Write the mapping into the app's `CLAUDE.md`, and create the file if it is
+Write the mapping into the app's `AGENTS.md`, and create the file if it is
 missing.
 
 ## Snapshots through a debug bridge

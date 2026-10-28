@@ -46,7 +46,7 @@ Use these words exactly, so proposals stay comparable:
 
 Change no code in this step.
 
-1. Read `CLAUDE.md`, `ARCHITECTURE.md`, `docs/adr/`, and `docs/FIXLOG.md`
+1. Read `AGENTS.md`, `ARCHITECTURE.md`, `docs/adr/`, and `docs/FIXLOG.md`
    where they exist.
 2. Find hot spots:
 

@@ -3,6 +3,10 @@
 A native macOS app in SwiftUI. It runs on this Mac only, with a local
 SwiftData database and no server.
 
+What the app is for: the Bear note "__APP_NAME__ brief". Terms and
+decisions: `CONTEXT.md`. Check its glossary before naming anything in code
+or docs.
+
 ## Layout
 
 - `Sources/__APP_NAME__/` the app. `App.swift` has the window, menus, and the database location.
@@ -10,7 +14,7 @@ SwiftData database and no server.
 - `Package.swift` a Swift package. There is no Xcode project.
 - `build.sh` builds, signs, and installs `~/Applications/__APP_NAME__.app`.
 - `Icon/AppIcon.icon` the app icon, an Icon Composer file (JSON plus SVG layers). `build.sh` compiles it with `tools/make_icon.sh`; `tools/icon_review.sh` renders every look into one PNG.
-- `docs/` the brief, the screen index, and the user stories, when they exist.
+- `docs/agents/` how to use the issue tracker (OmniFocus and Bear). `docs/screens/` reference screenshots. `docs/FIXLOG.md` and `docs/architecture-review-<date>.md` when they exist.
 
 ## Build and check
 
@@ -50,3 +54,28 @@ The bama plugin has a skill for each step: `bama-mac-design` (design rules),
 ## Git
 
 - Commit after each working change, with a message that says what the user can now do.
+
+## Writing
+
+Write plainly. Short sentences, no rhetorical framing. State findings, do
+not editorialise about them.
+
+Do not create documents that have not been asked for. If another document
+would help, say so and wait. Specs live in Bear, never in this repo.
+
+## Agent skills
+
+### Issue tracker
+
+OmniFocus project "__APP_NAME__ App", with specs in Bear notes tagged
+#__BEAR_TAG__. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five triage tags, under the OmniFocus tag group "__APP_NAME__ triage".
+See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context. Glossary and decisions in `CONTEXT.md`. See
+`docs/agents/domain.md`.

@@ -21,9 +21,12 @@ mv "$dest/Sources/__APP_NAME__" "$dest/Sources/$name"
 mv "$dest/Sources/__APP_NAME__Kit" "$dest/Sources/${name}Kit"
 mv "$dest/Tests/__APP_NAME__KitTests" "$dest/Tests/${name}KitTests"
 # Replace the placeholders in every text file.
-grep -rlI "__APP_NAME__\|__BUNDLE_ID__" "$dest" | while read -r f; do
-  sed -i '' -e "s/__APP_NAME__/$name/g" -e "s/__BUNDLE_ID__/$bundle/g" "$f"
+tag="apps/${name:l}"
+grep -rlI "__APP_NAME__\|__BUNDLE_ID__\|__BEAR_TAG__" "$dest" | while read -r f; do
+  sed -i '' -e "s/__APP_NAME__/$name/g" -e "s/__BUNDLE_ID__/$bundle/g" -e "s|__BEAR_TAG__|$tag|g" "$f"
 done
+# Claude Code reads CLAUDE.md; other agents read AGENTS.md. One file, two names.
+[[ -e "$dest/CLAUDE.md" ]] || ln -s AGENTS.md "$dest/CLAUDE.md"
 chmod +x "$dest/build.sh" "$dest/tools/make_icon.sh" "$dest/tools/icon_review.sh" "$dest/tools/grid-lint.sh" "$dest/tools/check-layout.swift" "$dest/tools/snap.sh" "$dest/tools/selftest.sh"
 
 cd "$dest"

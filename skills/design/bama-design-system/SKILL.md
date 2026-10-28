@@ -122,7 +122,7 @@ better, never worse.
 
 ## 6. Point agents at it
 
-Add one line to the app's `CLAUDE.md` (create the file if it is missing):
+Add one line to the app's `AGENTS.md` (create the file if it is missing):
 "Design rules: `design/DESIGN-SYSTEM.md`. Use its tokens; never raw colors,
 radii, or durations."
 

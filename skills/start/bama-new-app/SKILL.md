@@ -21,7 +21,9 @@ binary in a real `.app` bundle. An agent can read and edit every file.
   Info.plist.in          bundle id, name, icon, minimum macOS
   Icon/AppIcon.icon      the app icon: Icon Composer file, JSON plus SVG layers
   build.sh               swift build -> .app bundle -> codesign -> ~/Applications
-  CLAUDE.md              build, check, and design rules for agents
+  AGENTS.md              build, check, design, and writing rules for agents (CLAUDE.md links to it)
+  CONTEXT.md             glossary and decisions
+  docs/agents/           how to use the issue tracker: OmniFocus and Bear
   Sources/<AppName>/
     App.swift            window, menus, Settings, database location
     Models.swift         SwiftData models, sidebar pages, AppModel

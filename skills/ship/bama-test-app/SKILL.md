@@ -115,7 +115,7 @@ copy. Computer use `app_menu` works in the background:
 2. Click a row (`app_click`), then To-Do > Complete: the row is done and the
    next row is selected (`app_screenshot`).
 
-Write these steps into the app's `CLAUDE.md`, so every agent runs them
+Write these steps into the app's `AGENTS.md`, so every agent runs them
 after touching commands.
 
 ### Runs that never hang

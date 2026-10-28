@@ -112,7 +112,7 @@ Write `.claude/skills/<cli-name>/SKILL.md` in the app's repo from
 [teach-agents.md](teach-agents.md): what the app is, the safety rules,
 the main commands, and "run `<cli-name> help` for the rest". To use the
 app from any folder, also copy it to `~/.claude/skills/<cli-name>/`. Add
-one line to the app's `CLAUDE.md`: "Drive the app with `<cli-name>`. See
+one line to the app's `AGENTS.md`: "Drive the app with `<cli-name>`. See
 `.claude/skills/<cli-name>/SKILL.md`."
 
 Check: a fresh `claude -p "List my starred items with <cli-name>"` finds
