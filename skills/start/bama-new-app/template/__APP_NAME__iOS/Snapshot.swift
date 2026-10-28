@@ -8,11 +8,12 @@ struct SnapshotPage {
     let show: @MainActor (UIWindow) async -> Void
 }
 
-/// Screenshot mode for agents, in the simulator:
+/// Screenshot mode for agents, in the simulator (tools/snap-ios.sh does this):
 ///   SIMCTL_CHILD_APP_STORE=/tmp/test.sqlite SIMCTL_CHILD_APP_SNAPSHOT=/tmp/shots xcrun simctl launch booted __BUNDLE_ID__
-/// writes <page>-light.png and <page>-dark.png for every registered page,
-/// then quits. The simulator shares the Mac's /tmp. APP_SNAPSHOT_PAGES=main
-/// limits the pages. Register a page for every tab, screen and sheet a
+/// writes <page>-<iphone|ipad>-light.png and -dark.png for every registered
+/// page, then quits. The simulator shares the Mac's /tmp.
+/// APP_SNAPSHOT_PAGES=main limits the pages. APP_SNAPSHOT_ORIENTATION=landscape
+/// turns the screen first. Register a page for every tab, screen and sheet a
 /// ticket adds (SceneDelegate.snapshotPages), or the loop cannot see it.
 @MainActor
 enum Snapshot {
@@ -29,16 +30,18 @@ enum Snapshot {
             exit(1)
         }
         setvbuf(stdout, nil, _IOLBF, 0)
-        let only = env["APP_SNAPSHOT_PAGES"].map { Set($0.split(separator: ",").map(String.init)) }
+        let only = env["APP_SNAPSHOT_PAGES"].flatMap { $0.isEmpty ? nil : $0 }.map { Set($0.split(separator: ",").map(String.init)) }
+        let device = UIDevice.current.userInterfaceIdiom == .pad ? "ipad" : "iphone"
+        let landscape = env["APP_SNAPSHOT_ORIENTATION"] == "landscape"
         Task {
             try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
-            try? await Task.sleep(for: .seconds(1))
+            try? await Task.sleep(for: .seconds(1.5))
             for mode in ["light", "dark"] {
                 window.overrideUserInterfaceStyle = mode == "light" ? .light : .dark
                 for page in pages where only?.contains(page.name) ?? true {
                     await page.show(window)
                     try? await Task.sleep(for: .seconds(0.8))
-                    capture(window, to: "\(dir)/\(page.name)-\(mode).png")
+                    capture(window, landscape: landscape, to: "\(dir)/\(page.name)-\(device)-\(mode).png")
                 }
             }
             print("SNAPSHOT done \(dir)")
@@ -47,9 +50,26 @@ enum Snapshot {
     }
 
     /// Draws the window with everything presented on it (sheets, alerts).
-    private static func capture(_ window: UIWindow, to path: String) {
-        let image = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
-            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+    /// For landscape, it lays the root view out at the landscape size and
+    /// draws that: iPadOS 26 ignores rotation requests in the simulator's
+    /// windowing mode. The iPad is regular width both ways, so only the
+    /// bounds change. Sheets are not drawn in landscape.
+    private static func capture(_ window: UIWindow, landscape: Bool, to path: String) {
+        var target: UIView = window
+        var bounds = window.bounds
+        let root = window.rootViewController?.view
+        let portrait = root?.frame ?? .zero
+        if landscape, let root, bounds.height > bounds.width {
+            bounds = CGRect(x: 0, y: 0, width: bounds.height, height: bounds.width)
+            root.frame = bounds
+            root.layoutIfNeeded()
+            target = root
+        }
+        defer { if target !== window { root?.frame = portrait } }
+        let image = UIGraphicsImageRenderer(bounds: bounds).image { context in
+            if !target.drawHierarchy(in: bounds, afterScreenUpdates: true) {
+                target.layer.render(in: context.cgContext)
+            }
         }
         if let data = image.pngData(), (try? data.write(to: URL(fileURLWithPath: path))) != nil {
             print("SNAPSHOT \(path)")

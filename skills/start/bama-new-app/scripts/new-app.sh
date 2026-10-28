@@ -38,14 +38,14 @@ rsync -a --ignore-existing "$template/" "$dest/"
 # Pick the targets. project-ios.yml is the iOS target block, appended under
 # `targets:`; the Mac target sits between the mac-target markers.
 if [[ "$platforms" == mac ]]; then
-  rm -rf "$dest/__APP_NAME__iOS"
+  rm -rf "$dest/__APP_NAME__iOS" "$dest"/tools/{snap,selftest}-ios.sh
 else
   cat "$dest/project-ios.yml" >> "$dest/project.yml"
 fi
 rm "$dest/project-ios.yml"
 if [[ "$platforms" == ios ]]; then
   sed -i '' '/# mac-target-begin/,/# mac-target-end/d' "$dest/project.yml"
-  rm -rf "$dest/__APP_NAME__"
+  rm -rf "$dest/__APP_NAME__" "$dest"/tools/{snap,selftest}.sh
 fi
 # A device build signs with your team. It is the OU of your Apple Development
 # certificate; without one, simulator builds still work.

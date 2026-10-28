@@ -2,7 +2,8 @@
 # Adds the iPhone and iPad target to a Mac app made with new-app.sh.
 # Usage: add-ios.sh <app-folder>
 #   add-ios.sh ~/Developer/Tasks
-# Copies <App>iOS/ from the template and appends the <App>iOS target to
+# Copies <App>iOS/ and tools/snap-ios.sh and selftest-ios.sh from the
+# template, and appends the <App>iOS target to
 # project.yml. Both targets share <App>Core. Commit the result yourself.
 set -euo pipefail
 app_dir=${1:?usage: add-ios.sh <app-folder>}
@@ -28,7 +29,12 @@ for f in "$template"/__APP_NAME__iOS/*.swift; do
   fill "$f" > "$app_dir/${name}iOS/${f:t}"
 done
 fill "$template/project-ios.yml" >> "$app_dir/project.yml"
+mkdir -p "$app_dir/tools"
+for f in snap-ios.sh selftest-ios.sh; do
+  fill "$template/tools/$f" > "$app_dir/tools/$f"
+  chmod +x "$app_dir/tools/$f"
+done
 
 echo "added ${name}iOS to $app_dir. Next:"
 echo "  1. move the seed data from ${name}/SeedData.swift into ${name}iOS/SeedData.swift if it has any"
-echo "  2. build it for the simulator, then commit"
+echo "  2. ./build.sh --ios, tools/selftest-ios.sh and tools/snap-ios.sh, then commit"
