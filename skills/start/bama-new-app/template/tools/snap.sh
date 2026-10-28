@@ -1,10 +1,11 @@
 #!/bin/zsh
-# Snapshots of every page in light and dark, with seed data, on a fresh test store.
+# Snapshots of every registered page in light and dark, with seed data, on a fresh test store.
+# Build first: ./build.sh
 # Usage: tools/snap.sh            all pages
-#        APP_SNAPSHOT_PAGES=all,settings tools/snap.sh
+#        APP_SNAPSHOT_PAGES=main tools/snap.sh
 set -u
 app=~/Applications/__APP_NAME__.app/Contents/MacOS/__APP_NAME__
-store=/tmp/__APP_NAME__-test.store
+store=/tmp/__APP_NAME__-test.sqlite
 shots=/tmp/__APP_NAME__-shots
 # A crashed run leaves saved window state, and the next launch would wait on a "reopen windows?" alert.
 rm -rf ~/Library/Saved\ Application\ State/__BUNDLE_ID__.savedState

@@ -20,6 +20,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowController: MainWindowController!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Test runs never open the real store, not even to refuse.
+        if (SelfTest.requested || Snapshot.requested) && !Store.isOverridden {
+            print("refused: set APP_STORE to a file in /tmp for --selftest and APP_SNAPSHOT")
+            SelfTest.exitCode = 1
+            NSApp.terminate(nil)
+            return
+        }
         do {
             store = try Store(url: Store.defaultURL(appName: "__APP_NAME__"))
         } catch {
@@ -32,9 +39,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         windowController.showWindow(nil)
         // Started from a terminal, the process is not a foreground app yet.
         NSApp.activate()
+
+        SeedData.insertIfRequested(into: store)
+        SelfTest.runIfRequested(store: store)
+        Snapshot.runIfRequested(pages: snapshotPages)
+    }
+
+    /// Every screen snapshot mode visits. Add one for each sidebar item,
+    /// sheet, panel and Settings tab.
+    private var snapshotPages: [SnapshotPage] {
+        [
+            SnapshotPage(name: "main") { [windowController] in windowController?.window },
+        ]
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool { true }
+
+    /// The self-test's result becomes the exit code, after a normal quit.
+    func applicationWillTerminate(_ notification: Notification) {
+        if SelfTest.requested { exit(SelfTest.exitCode) }
+    }
 }
