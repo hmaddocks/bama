@@ -29,6 +29,9 @@ for f in "$template"/__APP_NAME__iOS/*.swift; do
   fill "$f" > "$app_dir/${name}iOS/${f:t}"
 done
 fill "$template/project-ios.yml" >> "$app_dir/project.yml"
+# xcodegen writes the target's Info.plist from project.yml.
+[[ -f "$app_dir/.gitignore" ]] && ! grep -qx "/${name}iOS/Info.plist" "$app_dir/.gitignore" \
+  && echo "/${name}iOS/Info.plist" >> "$app_dir/.gitignore"
 # AGENTS.md gets the iPhone and iPad section, before "## Git".
 if [[ -f "$app_dir/AGENTS.md" ]] && ! grep -q "ios-begin" "$app_dir/AGENTS.md"; then
   section=$(mktemp)
