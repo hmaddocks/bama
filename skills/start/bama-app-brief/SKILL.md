@@ -40,13 +40,16 @@ brief, and note "decided by the agent" next to it.
 2. What are the three things you do most often? These become the main pages.
 3. What data does it hold? Name the nouns: tasks, notes, recipes, invoices.
 4. Is there a reference app you like? Then the `bama-clone` skill comes next.
-5. Where does it live: a window with a sidebar, a menu bar item, a
-   quick-capture panel with a global shortcut, or a mix?
-6. Does it need the internet? Default: no.
-7. Which three things are out of scope for version one?
-8. Any brand or accent color, or an app whose colors and spacing they
+5. Which devices: the Mac, iPhone and iPad, or both? Default: the Mac.
+   iPhone and iPad can be added later.
+6. Where does it live: a window with a sidebar, a menu bar item, a
+   quick-capture panel with a global shortcut, or a mix? On iPhone and
+   iPad: tabs, or one list?
+7. Does it need the internet? Default: no.
+8. Which three things are out of scope for version one?
+9. Any brand or accent color, or an app whose colors and spacing they
    like ("like Things")? The `bama-design-from-app` skill measures it. No
-   answer means the Mac's own look and accent color. Controls stay native
+   answer means the system's own look and accent color. Controls stay native
    either way.
 
 Check: every question has an answer, from the user, the research, or you
@@ -56,8 +59,9 @@ Check: every question has an answer, from the user, the research, or you
 
 A personal app has one user. Remove what exists only for other users:
 accounts, sharing, teams, sync servers, billing, onboarding, analytics,
-upgrade prompts. If the user wants data on two Macs, note "later: iCloud
-sync".
+upgrade prompts. If the user wants the same data on two devices, note
+"later: iCloud sync" (`bama-swift`'s icloud-sync.md). Each device keeps
+its own store until then.
 
 Version one is one afternoon of agent time: one window, two to five main
 pages, one data model with two to four types. Smart lists that filter one
@@ -102,8 +106,12 @@ One sentence: what it is and who it is for.
 ## Data
 - <Type>: <fields>
 
+## Platforms
+<mac, ios, or both>: <why>
+
 ## Shape
-<sidebar window / menu bar extra / quick panel>, macOS 26 or later.
+<Mac: sidebar window / menu bar extra / quick panel, macOS 26 or later>
+<iPhone and iPad: tabs and a sidebar / one list, iOS 26 or later>
 Local data. Works offline. No accounts.
 
 ## System hooks
@@ -123,6 +131,9 @@ Local data. Works offline. No accounts.
 
 ## Design plan
 (filled in by bama-mac-design)
+
+## Design plan (iOS)
+(filled in by bama-ios-design; only with iPhone and iPad)
 ```
 
 Check: the note exists and has every section.
@@ -157,7 +168,8 @@ Check: the OmniFocus project has one action per milestone, the tag group
 ## 7. Hand off
 
 Call the Skill tool with `bama-feature-spec` for the first milestone, or
-with `bama-new-app` if the user wants to see a window first.
+with `bama-new-app` if the user wants to see a window first. Pass it the
+`## Platforms` value as `--platforms`.
 
 Done when the Bear note "<AppName> brief" has every section and fits on
 one page, the OmniFocus project has every milestone as an action, and the

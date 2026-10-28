@@ -8,6 +8,7 @@ packages:
   __APP_NAME__Core:
     path: __APP_NAME__Core
 targets:
+  # mac-target-begin
   __APP_NAME__:
     type: application
     platform: macOS
@@ -37,3 +38,4 @@ targets:
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_STYLE: Manual
         ENABLE_HARDENED_RUNTIME: NO
+  # mac-target-end

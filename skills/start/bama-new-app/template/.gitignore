@@ -1,5 +1,7 @@
 # Generated from project.yml by build.sh (xcodegen).
 *.xcodeproj/
+/__APP_NAME__/Info.plist
+/__APP_NAME__iOS/Info.plist
 .build/
 .swiftpm/
 DerivedData/

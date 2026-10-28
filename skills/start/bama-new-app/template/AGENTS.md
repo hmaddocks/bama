@@ -1,7 +1,8 @@
 # __APP_NAME__
 
-A native macOS app in Swift and AppKit. It runs on this Mac only, with a
-local Core Data store and no server.
+A native app in Swift: AppKit on the Mac, and UIKit on iPhone and iPad
+when `project.yml` has the `__APP_NAME__iOS` target. Each device keeps a
+local Core Data store. There is no server.
 
 What the app is for: the Bear note "__APP_NAME__ brief". Terms and
 decisions: `CONTEXT.md`. Check its glossary before naming anything in code
@@ -9,8 +10,9 @@ or docs.
 
 ## Architecture
 
-- **AppKit**, not SwiftUI. SwiftUI only for a contained piece that needs it
-  (Swift Charts in an `NSHostingView`), with the reason in `CONTEXT.md`.
+- **AppKit and UIKit**, not SwiftUI. SwiftUI only for a contained piece
+  that needs it (Swift Charts in an `NSHostingView` or
+  `UIHostingController`), with the reason in `CONTEXT.md`.
 - **`__APP_NAME__Core`**, a local Swift package: models, storage, and logic.
   No AppKit or UIKit types may appear in it. Tests live there.
 - **Core Data**. Entities are in
@@ -20,7 +22,7 @@ or docs.
   View controllers and layout are in Swift.
 - `main.swift` calls `NSApplicationMain`, and `AppDelegate` is
   `@objc(AppDelegate)`. The comment in `AppDelegate.swift` says why; keep both.
-- **Platform defaults** for UI behaviour: what AppKit does out of the box
+- **Platform defaults** for UI behaviour: what AppKit and UIKit do out of the box
   and what the Human Interface Guidelines describe. When a ticket departs
   from the default, ask before building it: name the default and what the
   departure costs.
@@ -75,6 +77,27 @@ or docs.
   often. Menu items validate (`NSMenuItemValidation`).
 - Edits go through the store's view context, so Edit > Undo works.
 - SF Symbols for icons.
+
+<!-- ios-begin -->
+## iPhone and iPad
+
+- `__APP_NAME__iOS/` the UIKit target: `AppDelegate.swift` (`@main`, no
+  xib), `SceneDelegate.swift` (opens the store, sets the root view
+  controller, lists the snapshot pages), `DesignTokens.swift` (the same
+  tokens as `UIColor`). It shares `__APP_NAME__Core` with the Mac app and
+  nothing else.
+- Build, install and launch in the iPhone 17 simulator: `./build.sh --ios`.
+  On a connected device: `./build.sh --ios --device`.
+- Self-test: `tools/selftest-ios.sh`. Snapshots: `tools/snap-ios.sh` writes
+  `/tmp/__APP_NAME__-shots-ios/<page>-<iphone|ipad>-<light|dark>.png`,
+  the iPhone in portrait and the iPad in landscape. Look at them.
+- A screen is designed for touch, not copied from the Mac: the
+  `bama-ios-design` skill. Navigation is a tab bar on iPhone and a sidebar
+  on iPad, with the same pages.
+- A change to the iOS app is done when `./build.sh --ios` has no warnings,
+  `tools/selftest-ios.sh` passes, and you looked at the snapshots on both
+  devices.
+<!-- ios-end -->
 
 ## Git
 

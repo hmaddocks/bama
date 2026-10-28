@@ -1,6 +1,6 @@
 ---
 name: bama-design-system
-description: Design tokens for an AppKit app, the Cashflow way: DesignTokens.swift in code and a DESIGN.md at the repo root that says which token to use when. Use when the user wants a brand or accent colour, when an app has more than a few screens, when screens drift apart or colours and spacing feel inconsistent, or when the user asks for a style guide or design tokens.
+description: Design tokens for an AppKit and UIKit app, the Cashflow way: DesignTokens.swift in each target and one DESIGN.md at the repo root that says which token to use when. Use when the user wants a brand or accent colour, when an app has more than a few screens, when screens drift apart or colours and spacing feel inconsistent, or when the user asks for a style guide or design tokens.
 ---
 
 # Design system
@@ -11,14 +11,19 @@ never raw values. Then a change in one place changes the whole app, and an
 agent can review a screen against one page.
 
 The skeleton has both files: `<App>/DesignTokens.swift` and `DESIGN.md`.
-They start almost empty on purpose. Start from `bama-mac-design`: tokens
+An app with an iOS target also has `<App>iOS/DesignTokens.swift`: the same
+token names and values as `UIColor`, so one `DESIGN.md` covers both. Add
+every token to both files in the same commit. They start almost empty on
+purpose. Start from `bama-mac-design`: tokens
 cover only what the system does not, and a token is added when a view first
 needs it. The app keeps Apple's look and native controls. To take the
 colours, type, and spacing of an app the user names, call the Skill tool
 with `bama-design-from-app`.
 
-There is no accent picker or theme store. The accent is the one the person
-set for their Mac (`.controlAccentColor`). A picker is built only when a
+There is no accent picker or theme store. On the Mac, the accent is the
+one the person set for their Mac (`.controlAccentColor`). iOS has no
+personal accent: the app's accent is the window's `tintColor`, system blue
+unless the brief names one. A picker is built only when a
 milestone asks for it, as a departure from the default.
 
 ## 1. Read the look
@@ -41,7 +46,7 @@ why each one exists.
 New app with no views yet? Skip this step.
 
 Existing app: read every view. List each raw value you find: hex colours,
-`NSColor(red:...)`, opacities, corner radii, constraint constants, fonts
+`NSColor(red:...)`, `UIColor(red:...)`, opacities, corner radii, constraint constants, fonts
 with a fixed size, animation durations. Group them. Most apps have 3 to 5
 of each where 1 or 2 are meant.
 
@@ -69,6 +74,9 @@ each added when the app first needs it:
 static let income = dynamic(light: "#047857", dark: "#34d399")
 ```
 
+In `<App>iOS/DesignTokens.swift` the token is the same line: its
+`dynamic(light:dark:)` returns a `UIColor`.
+
 Every colour that text sits on, or that is text, has a comment with its
 contrast, and clears 4.5:1 (3:1 for text 18 pt and larger). Fix the light
 value, the dark value, or both; never ship a token that fails. [HIG Color,
@@ -91,11 +99,11 @@ lines. Rules that transfer to most apps:
   appearances and with Increase Contrast. [HIG Color]
 - Accent-coloured text uses a deep shade in light mode and a light shade in
   dark mode. Text on an accent fill uses
-  `.alternateSelectedControlTextColor`, never a fixed white.
+  `.alternateSelectedControlTextColor` on the Mac, never a fixed white.
 - System fonts and text styles. A custom font only for headings, with a
   bold weight for the Bold Text setting.
 - Style a control with its own properties (`bezelStyle`, `controlSize`,
-  `contentTintColor`). Never rebuild a control from shapes: it loses the
+  `contentTintColor`; `UIButton.Configuration` on iOS). Never rebuild a control from shapes: it loses the
   keyboard, focus, and VoiceOver.
 - Inner corners are concentric: inner radius = outer radius - inset.
 - Animations are short, skipped under Reduce Motion
@@ -105,8 +113,8 @@ lines. Rules that transfer to most apps:
 - Hover never moves a selection. Only a click or a key does.
 - One primary button per window or sheet (`keyEquivalent = "\r"`).
 
-Check: every token in `DesignTokens.swift` has a row or a line in
-`DESIGN.md`, and nothing in `DESIGN.md` is missing from the code.
+Check: every token in each `DesignTokens.swift` has a row or a line in
+`DESIGN.md`, and nothing in `DESIGN.md` is missing from either file.
 
 ## 5. Migrate
 
@@ -120,9 +128,10 @@ improve on the ones before.
 Done when this finds no hits outside `DesignTokens.swift`:
 
 ```bash
-grep -rnE 'NSColor\((red|hex|srgbRed|calibratedRed|white):|#[0-9a-fA-F]{6}"|cornerRadius = [0-9]|duration = [0-9]|systemFont\(ofSize: [0-9]' <App>/ \
+grep -rnE '(NS|UI)Color\((red|hex|srgbRed|calibratedRed|white):|#[0-9a-fA-F]{6}"|cornerRadius = [0-9]|duration = [0-9]|systemFont\(ofSize: [0-9]' <App>/ <App>iOS/ \
   | grep -v DesignTokens.swift
 ```
 
-(hex strings in data and comments are fine), and `DESIGN.md` and
-`DesignTokens.swift` list the same tokens.
+(hex strings in data and comments are fine; drop `<App>iOS/` for a
+Mac-only app), and `DESIGN.md` and every `DesignTokens.swift` list the
+same tokens.

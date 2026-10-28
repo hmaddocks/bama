@@ -1,0 +1,3 @@
+interface:
+  display_name: "iPhone and iPad Design"
+  short_description: "Native UIKit design rules for iOS and iPadOS 26"

@@ -1,0 +1,44 @@
+  # The iOS target: iPhone and iPad, sharing __APP_NAME__Core with the Mac app.
+  # new-app.sh and add-ios.sh append this block under `targets:`.
+  __APP_NAME__iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: __APP_NAME__iOS
+      - path: Icon/AppIcon.icon
+    dependencies:
+      - package: __APP_NAME__Core
+    info:
+      path: __APP_NAME__iOS/Info.plist
+      properties:
+        CFBundleDisplayName: __APP_NAME__
+        CFBundleShortVersionString: "0.1"
+        CFBundleVersion: "1"
+        CFBundleIconName: AppIcon
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: __BUNDLE_ID__
+        SWIFT_VERSION: "6.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Automatic signing for a device build (./build.sh --ios --device).
+        # Simulator builds are not signed.
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: __TEAM_ID__
