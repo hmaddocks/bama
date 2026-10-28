@@ -1,23 +1,38 @@
 ---
 name: bama-swift
-description: Swift 6, AppKit, and Core Data code rules for Mac apps, including concurrency, the core package, menus and undo, hosting a SwiftUI piece, and fixes for common compiler errors. Use when writing, reviewing, or debugging Swift code in a Mac app, or on concurrency, Sendable, Core Data, or xib errors.
+description: Swift 6, AppKit, UIKit, and Core Data code rules for Mac, iPhone and iPad apps, including concurrency, the core package, menus and undo, hosting a SwiftUI piece, iCloud sync, and fixes for common compiler errors. Use when writing, reviewing, or debugging Swift code in an app, or on concurrency, Sendable, Core Data, or xib errors.
 ---
 
-# Swift, AppKit, and Core Data
+# Swift, AppKit, UIKit, and Core Data
 
 The code is right when it builds with zero warnings in Swift 6 language
 mode, `bin/test` passes, and the app does what the ticket says. For how it
-should look, call the Skill tool with `bama-mac-design`. For copyable AppKit
-code (split view, source list, table view, sheets, undo), read
-[appkit-recipes.md](appkit-recipes.md).
+should look, call the Skill tool with `bama-mac-design` (Mac) or
+`bama-ios-design` (iPhone and iPad).
+
+Copyable code:
+
+- Mac: [appkit-recipes.md](appkit-recipes.md): split view, source list,
+  table view, sheets, menus, undo.
+- iPhone and iPad: [uikit-recipes.md](uikit-recipes.md): a split view with
+  a tab bar in compact width, Core Data lists, form sheets, swipe actions,
+  context menus, undo.
+- Sharing one store between the Mac and iOS apps:
+  [icloud-sync.md](icloud-sync.md).
 
 ## Where code goes
 
 | Code | Put it in |
 | --- | --- |
 | Models, storage, rules, parsing, calculations | `<App>Core`, with tests in `<App>Core/Tests` |
-| View controllers, windows, menus, views | The app target, `<App>/` |
+| Mac view controllers, windows, menus, views | The Mac target, `<App>/` |
+| iPhone and iPad view controllers and views | The iOS target, `<App>iOS/` |
 | A value both need (a formatter's rules, a validation) | `<App>Core`, as a pure function or type |
+
+The two app targets share nothing but `<App>Core`. Each has its own
+`DesignTokens.swift` with the same names and values. A screen exists once
+per platform, written in that platform's idiom; share its logic through
+`<App>Core`, not its views.
 
 `<App>Core` never imports AppKit or UIKit. If a model needs a colour or an
 image, store a name or a token id and resolve it in the app target.
@@ -29,8 +44,8 @@ function is wrong.
 
 ## Concurrency
 
-AppKit classes (`NSViewController`, `NSWindowController`, `NSView`) are
-main-actor already. Mark your own UI-facing classes `@MainActor`.
+AppKit and UIKit classes (`NSViewController`, `NSView`,
+`UIViewController`, `UIView`) are main-actor already. Mark your own UI-facing classes `@MainActor`.
 
 | Work | Put it in |
 | --- | --- |
@@ -95,7 +110,13 @@ main-actor already. Mark your own UI-facing classes `@MainActor`.
 - Register a snapshot page in `AppDelegate.snapshotPages` for every sidebar
   item, sheet, panel and Settings tab you add.
 
-## Menu commands
+On iOS the structure is simpler: `AppDelegate` is `@main` (no xib), and
+`SceneDelegate` opens the store and sets the window's root view controller,
+usually the split view in [uikit-recipes.md](uikit-recipes.md). Register a
+snapshot page in `SceneDelegate.snapshotPages` for every tab, sidebar item,
+and sheet.
+
+## Menu commands on the Mac
 
 - Every action is a menu item. Put it in `MainMenu.xib` or build it in
   code, with the action sent to the first responder (target `nil`), and
@@ -111,16 +132,19 @@ main-actor already. Mark your own UI-facing classes `@MainActor`.
 
 ## Hosting a SwiftUI piece
 
-SwiftUI is for a contained piece that AppKit has no good answer for, such
+SwiftUI is for a contained piece that AppKit or UIKit has no good answer for, such
 as a chart drawn with Swift Charts. Before you add one, write a decision in
 `CONTEXT.md` that says what it is and why AppKit does not cover it.
 
 - Host it in an `NSHostingView` (or `NSHostingController`) inside an AppKit
-  view controller. Set `sizingOptions` to match how it is laid out.
+  view controller, or a `UIHostingController` added as a child view
+  controller on iOS. Set `sizingOptions` to match how it is laid out.
 - Pass it plain values (a struct of chart points), not Core Data objects or
   the store. It holds no state of its own; the view controller rebuilds it
   when the data changes.
 - Keep it in its own file, named after what it shows (`TrendChart.swift`).
+  A piece both apps show goes in `SharedUI/`, added to both targets'
+  `sources` in `project.yml`.
 
 ## Names Swift already uses
 

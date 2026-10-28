@@ -53,13 +53,15 @@ enum Snapshot {
     /// For landscape, it lays the root view out at the landscape size and
     /// draws that: iPadOS 26 ignores rotation requests in the simulator's
     /// windowing mode. The iPad is regular width both ways, so only the
-    /// bounds change. Sheets are not drawn in landscape.
+    /// bounds change. A page with a sheet open is drawn in portrait, since
+    /// the sheet is outside the root view, and its line says so.
     private static func capture(_ window: UIWindow, landscape: Bool, to path: String) {
         var target: UIView = window
         var bounds = window.bounds
         let root = window.rootViewController?.view
         let portrait = root?.frame ?? .zero
-        if landscape, let root, bounds.height > bounds.width {
+        let presenting = window.rootViewController?.presentedViewController != nil
+        if landscape, let root, bounds.height > bounds.width, !presenting {
             bounds = CGRect(x: 0, y: 0, width: bounds.height, height: bounds.width)
             root.frame = bounds
             root.layoutIfNeeded()
@@ -72,7 +74,7 @@ enum Snapshot {
             }
         }
         if let data = image.pngData(), (try? data.write(to: URL(fileURLWithPath: path))) != nil {
-            print("SNAPSHOT \(path)")
+            print("SNAPSHOT \(path)\(landscape && presenting ? " (portrait: a sheet is open)" : "")")
         } else {
             print("SNAPSHOT failed \(path)")
         }
