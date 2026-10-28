@@ -1,8 +1,8 @@
 {
   "name": "bama",
   "owner": {
-    "name": "Dave Ebbelaar",
-    "url": "https://github.com/daveebbelaar"
+    "name": "Henry Maddocks",
+    "url": "https://github.com/hmaddocks"
   },
   "description": "Build any Mac app. Agent skills for native macOS apps with Swift and SwiftUI.",
   "plugins": [

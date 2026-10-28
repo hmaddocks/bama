@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Build any Mac app: skills to research, clone, plan, scaffold, design, integrate, optimize, test, and ship native macOS apps with Swift and SwiftUI.",
   "author": {
-    "name": "Dave Ebbelaar",
-    "url": "https://github.com/daveebbelaar"
+    "name": "Henry Maddocks",
+    "url": "https://github.com/hmaddocks"
   },
-  "repository": "https://github.com/daveebbelaar/bama",
+  "repository": "https://github.com/hmaddocks/bama",
   "license": "MIT",
   "keywords": [
     "macos",

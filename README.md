@@ -11,9 +11,13 @@
 Agent skills that take a native macOS app from idea to your Dock.<br>
 Swift and SwiftUI. Local data. No Xcode GUI.
 
+A fork of [daveebbelaar/bama](https://github.com/daveebbelaar/bama), moving
+to AppKit and UIKit apps for Mac, iPhone and iPad, planned in OmniFocus and
+Bear. The skills still build SwiftUI Mac apps until that work lands.
+
 [![macOS 26+](https://img.shields.io/badge/macOS-26%2B-000000?style=flat-square&logo=apple&logoColor=white)](#requirements)
 [![Swift 6.2](https://img.shields.io/badge/Swift-6.2-F05138?style=flat-square&logo=swift&logoColor=white)](#requirements)
-[![21 skills](https://img.shields.io/badge/skills-20-5E5CE6?style=flat-square)](#skills)
+[![20 skills](https://img.shields.io/badge/skills-20-5E5CE6?style=flat-square)](#skills)
 [![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-D97757?style=flat-square&logo=claude&logoColor=white)](#install)
 [![Codex plugin](https://img.shields.io/badge/Codex-plugin-10A37F?style=flat-square)](#install)
 [![MIT license](https://img.shields.io/badge/license-MIT-F4C430?style=flat-square)](LICENSE)
@@ -25,7 +29,7 @@ Swift and SwiftUI. Local data. No Xcode GUI.
 ## Quick start
 
 ```bash
-npx skills@latest add daveebbelaar/bama
+npx skills@latest add hmaddocks/bama
 ```
 
 Then ask your agent:
@@ -99,7 +103,7 @@ Pick one route per agent. Two routes install every skill twice.
 <summary><b>Claude Code</b></summary>
 
 ```text
-/plugin marketplace add daveebbelaar/bama
+/plugin marketplace add hmaddocks/bama
 /plugin install bama@bama
 ```
 
@@ -109,7 +113,7 @@ Pick one route per agent. Two routes install every skill twice.
 <summary><b>Codex</b></summary>
 
 ```bash
-codex plugin marketplace add daveebbelaar/bama
+codex plugin marketplace add hmaddocks/bama
 codex plugin add bama@bama
 ```
 
@@ -121,8 +125,8 @@ codex plugin add bama@bama
 Uses [skills.sh](https://skills.sh). Install all skills, or one with `--skill`.
 
 ```bash
-npx skills@latest add daveebbelaar/bama -a <agent>
-npx skills@latest add daveebbelaar/bama --skill=clone
+npx skills@latest add hmaddocks/bama -a <agent>
+npx skills@latest add hmaddocks/bama --skill=bama-clone
 ```
 
 </details>
@@ -131,7 +135,7 @@ npx skills@latest add daveebbelaar/bama --skill=clone
 <summary><b>By hand</b></summary>
 
 ```bash
-git clone https://github.com/daveebbelaar/bama.git
+git clone https://github.com/hmaddocks/bama.git
 bama/scripts/link-skills.sh       # links every skill into ~/.claude/skills and ~/.agents/skills
 ```
 
@@ -146,6 +150,8 @@ bama/scripts/link-skills.sh       # links every skill into ~/.claude/skills and 
 
 ## Credits
 
+- Upstream: [BAMA](https://github.com/daveebbelaar/bama) by Dave Ebbelaar.
+  This fork keeps its skills and structure.
 - The idea and the "any" promise come from
   [REA: Reverse Engineer Anything](https://github.com/morluto/rea) by morluto.
   REA showed that an agent can reverse engineer any app. BAMA takes that idea to the Mac.
