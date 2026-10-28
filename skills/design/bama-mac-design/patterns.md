@@ -1,25 +1,44 @@
-# SwiftUI patterns for macOS
+# AppKit patterns for macOS
 
-Code that compiles on macOS 26 with Swift 6.2 and main-actor default isolation
-(the `bama-new-app` template). `Item` is the template's SwiftData model. Rename it to yours.
+Code that compiles on macOS 26 with Swift 6 in the `bama-new-app` skeleton.
+`Note` and `NotesViewController` are the example entity and list from
+`bama-swift`'s
+[appkit-recipes.md](../../code/bama-swift/appkit-recipes.md); rename them
+to yours. The split view, table view, sheets, menu validation, and undo
+with Core Data are there too.
 
 Imports used across these snippets:
 
 ```swift
-import AppKit
+import Cocoa
 import Carbon.HIToolbox
-import SwiftData
-import SwiftUI
 import UniformTypeIdentifiers
 ```
 
-## Global shortcut (no Accessibility permission needed)
+## Contents
 
-Carbon's hot key API still works on macOS 26 and needs no permission. Keep the `GlobalHotKey` object alive (store it on the app delegate), or the shortcut stops working.
+- Global shortcut
+- Quick-capture panel
+- Toolbar that follows the columns
+- Context menu, the Delete key, and feedback
+- Search with recent searches
+- Sortable table
+- Drag to Finder makes a real file
+- Restore the selection on relaunch
+- Custom selection that follows the window
+- Menu bar extra
+- More patterns from real apps
+
+## Global shortcut
+
+No Accessibility permission needed. Carbon's hot key API still works on
+macOS 26. Keep the `GlobalHotKey` object alive (store it on the app
+delegate), or the shortcut stops working.
 
 ```swift
 /// Calls `action` when the user presses the shortcut anywhere in macOS.
 /// Example: GlobalHotKey(key: kVK_Space, modifiers: [.option]) { panel.toggle() }
+@MainActor
 final class GlobalHotKey {
     private var ref: EventHotKeyRef?
     private var handler: EventHandlerRef?
@@ -53,25 +72,47 @@ final class GlobalHotKey {
 
 ## Quick-capture panel
 
-A Spotlight-style panel for the app's most frequent action. Pair it with `GlobalHotKey` above. The field uses glass because the panel floats over other apps.
+A Spotlight-style panel for the app's most frequent action. Pair it with
+`GlobalHotKey` above. The field sits on glass because the panel floats
+over other apps.
 
 ```swift
 /// A floating panel without a title bar, like Spotlight. Escape closes it.
-final class QuickCapturePanel: NSPanel {
-    init<Content: View>(@ViewBuilder content: () -> Content) {
-        super.init(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 64),
-            styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
-            backing: .buffered,
-            defer: false
-        )
+final class QuickCapturePanel: NSPanel, NSTextFieldDelegate {
+    private let field = NSTextField()
+    private let onSubmit: (String) -> Void
+
+    init(placeholder: String, onSubmit: @escaping (String) -> Void) {
+        self.onSubmit = onSubmit
+        super.init(contentRect: NSRect(x: 0, y: 0, width: 560, height: 64),
+                   styleMask: [.nonactivatingPanel, .borderless, .fullSizeContentView],
+                   backing: .buffered, defer: false)
         isOpaque = false
         backgroundColor = .clear
         hasShadow = true
         isMovableByWindowBackground = true
         level = .floating
         hidesOnDeactivate = true
-        contentView = NSHostingView(rootView: content())
+
+        field.placeholderString = placeholder
+        field.isBordered = false
+        field.drawsBackground = false
+        field.focusRingType = .none
+        field.font = .preferredFont(forTextStyle: .title3)
+        field.delegate = self
+        field.translatesAutoresizingMaskIntoConstraints = false
+
+        let glass = NSGlassEffectView()
+        glass.cornerRadius = 16
+        let content = NSView()
+        content.addSubview(field)
+        NSLayoutConstraint.activate([
+            field.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: Space.xl),
+            field.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -Space.xl),
+            field.centerYAnchor.constraint(equalTo: content.centerYAnchor),
+        ])
+        glass.contentView = content
+        contentView = glass
     }
 
     override var canBecomeKey: Bool { true }
@@ -81,59 +122,17 @@ final class QuickCapturePanel: NSPanel {
         if isVisible { orderOut(nil); return }
         center()
         makeKeyAndOrderFront(nil)
-        NSApp.activate()
+        makeFirstResponder(field)
     }
-}
 
-struct QuickCaptureField: View {
-    @State private var text = ""
-    @FocusState private var focused: Bool
-    let onSubmit: (String) -> Void
-
-    var body: some View {
-        TextField("Add a task, like \"Call mom tomorrow at 5pm\"", text: $text)
-            .textFieldStyle(.plain)
-            .font(.title3)
-            .focused($focused)
-            .padding(.horizontal, 20)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .glassEffect(.regular, in: .rect(cornerRadius: 16))
-            .onAppear { focused = true }
-            .onSubmit {
-                let title = text.trimmingCharacters(in: .whitespaces)
-                guard !title.isEmpty else { return }
-                onSubmit(title)  // optimistic: the caller saves, the panel closes right away
-                text = ""
-            }
-    }
-}
-```
-
-## Commands that reach the focused window
-
-Menu commands act on whatever the focused window has selected. Add `.commands { ItemCommands() }` to the scene and `.focusedSceneValue(\.selectedItem, ...)` in the view.
-
-```swift
-struct SelectedItemKey: FocusedValueKey { typealias Value = Item }
-
-extension FocusedValues {
-    var selectedItem: Item? {
-        get { self[SelectedItemKey.self] }
-        set { self[SelectedItemKey.self] = newValue }
-    }
-}
-
-struct ItemCommands: Commands {
-    @FocusedValue(\.selectedItem) private var item
-
-    var body: some Commands {
-        CommandMenu("Item") {
-            Button(item?.isStarred == true ? "Unstar" : "Star", systemImage: "star") {
-                item?.isStarred.toggle()
-            }
-            .keyboardShortcut("s", modifiers: [.command, .shift])
-            .disabled(item == nil)
-        }
+    func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
+        guard selector == #selector(insertNewline(_:)) else { return false }
+        let text = field.stringValue.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return true }
+        onSubmit(text)   // optimistic: the caller saves, the panel closes right away
+        field.stringValue = ""
+        orderOut(nil)
+        return true
     }
 }
 ```
@@ -148,165 +147,154 @@ one over each column. Each button sits over the column it acts on:
      over the sidebar       |       over the list             | over the inspector
 ```
 
-- The sidebar button comes with `NavigationSplitView` at the sidebar's
-  trailing edge.
-- Put `.inspector` on the `NavigationSplitView`, not inside the detail
-  view. The inspector is then a full-height column with its own toolbar
-  area. Inside the detail view it shares the detail's toolbar, and items
-  slide over the inspector.
-- The inspector button goes in the inspector's own `.toolbar`, after a
-  flexible spacer. SwiftUI keeps it at the window's trailing edge while the
-  inspector is hidden. Do not add a second button to the detail toolbar:
-  it then shows twice.
-- `.searchable(placement: .toolbar)` always moves to the window's trailing
-  edge, over the inspector. To keep search over the list, put a native
-  `NSSearchField` in a detail `ToolbarItem` (fixed width about 220 pt).
-- Add `InspectorCommands()` to the scene's `.commands`: View > Show
-  Inspector, Control-Command-I. No second inspector command elsewhere.
+- The split view's items: `NSSplitViewItem(sidebarWithViewController:)`,
+  the content, and `NSSplitViewItem(inspectorWithViewController:)`.
+- Tracking separators split the toolbar at the columns:
+  `.sidebarTrackingSeparator` and `.inspectorTrackingSeparator`.
+- `.toggleSidebar` and `.toggleInspector` are system items. They work with
+  the split view controller and get View menu commands from the system
+  (View > Show Sidebar, Control-Command-S; View > Show Inspector,
+  Control-Command-I). Add no second inspector command.
+- Search over the list is an `NSSearchToolbarItem` in the content area.
+- Set `window.toolbarStyle = .unified` and keep `.fullSizeContentView`, so
+  the sidebar runs the window's full height.
 
 ```swift
-NavigationSplitView {
-    Sidebar()
-} detail: {
-    ListPage()
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button("New Item", systemImage: "plus") { model.add() }
-            }
-            ToolbarItem(placement: .primaryAction) {
-                ToolbarSearchField(text: $model.searchText, prompt: "Search")   // NSViewRepresentable around NSSearchField
-            }
-        }
+extension NSToolbarItem.Identifier {
+    static let newNote = Self("newNote")
+    static let search = Self("search")
 }
-.inspector(isPresented: $model.showInspector) {
-    InspectorView()
-        .inspectorColumnWidth(min: 240, ideal: 280, max: 360)
-        .toolbar {
-            ToolbarSpacer(.flexible)
-            ToolbarItem(placement: .primaryAction) {
-                Button { model.showInspector.toggle() } label: {
-                    Label(model.showInspector ? "Hide Inspector" : "Show Inspector",
-                          systemImage: "sidebar.trailing")
-                }
-                .help("Show or hide the inspector (Control-Command-I)")
-            }
-        }
-}
-```
 
-Check both states in a real window capture (inspector open and closed),
-and once at the window's minimum width: nothing overlaps the column edge,
-each button appears once, and search is still reachable (toolbars.md,
-"Title and search").
+@MainActor
+final class MainToolbar: NSObject, NSToolbarDelegate {
+    let toolbar = NSToolbar(identifier: "Main")
 
-## Search, inspector, keyboard, context menu, feedback
-
-One list that shows search with a result count, an inspector, the Delete key, a context menu, and a symbol animation as feedback.
-
-```swift
-struct SearchableList: View {
-    @Environment(\.modelContext) private var context
-    @Query(sort: \Item.createdAt, order: .reverse) private var items: [Item]
-    @State private var query = ""
-    @State private var selection: Item.ID?
-    @State private var showInspector = true
-
-    private var results: [Item] {
-        query.isEmpty ? items : items.filter {
-            $0.title.localizedStandardContains(query) || $0.notes.localizedStandardContains(query)
-        }
+    override init() {
+        super.init()
+        toolbar.delegate = self
+        toolbar.displayMode = .iconOnly
     }
 
-    var body: some View {
-        List(results, selection: $selection) { item in
-            Label(item.title, systemImage: item.isStarred ? "star.fill" : "circle")
-                .contentTransition(.symbolEffect(.replace))  // visible feedback when starring
-                .tag(item.id)
-                .contextMenu {
-                    Button(item.isStarred ? "Unstar" : "Star", systemImage: "star") {
-                        withAnimation { item.isStarred.toggle() }
-                    }
-                    Divider()
-                    Button("Delete", systemImage: "trash", role: .destructive) { context.delete(item) }
-                }
-        }
-        .searchable(text: $query, placement: .toolbar, prompt: "Search items")
-        .navigationSubtitle(query.isEmpty ? "" : "\(results.count) results")
-        .onDeleteCommand {  // the Delete key and Edit > Delete
-            if let item = results.first(where: { $0.id == selection }) { context.delete(item) }
-        }
-        .focusedSceneValue(\.selectedItem, results.first { $0.id == selection })
-        .inspector(isPresented: $showInspector) {
-            Text("Details of the selection")
-                .inspectorColumnWidth(min: 220, ideal: 280)
-        }
-        .toolbar {
-            ToolbarItem {
-                Button("Inspector", systemImage: "sidebar.trailing") { showInspector.toggle() }
-                    .help("Show or hide details (Control-Command-I)")
-                    // Same key as InspectorCommands(). Use one or the other, not both.
-                    .keyboardShortcut("i", modifiers: [.command, .control])
-            }
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        [.toggleSidebar, .sidebarTrackingSeparator, .flexibleSpace, .newNote, .search,
+         .inspectorTrackingSeparator, .flexibleSpace, .toggleInspector]
+    }
+
+    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        toolbarDefaultItemIdentifiers(toolbar)
+    }
+
+    func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier id: NSToolbarItem.Identifier,
+                 willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
+        switch id {
+        case .newNote:
+            let item = NSToolbarItem(itemIdentifier: id)
+            item.label = "New Note"
+            item.toolTip = "Add a note (Command-N)"
+            item.image = NSImage(systemSymbolName: "plus", accessibilityDescription: "New Note")
+            item.action = #selector(NotesViewController.newNote(_:))   // first responder
+            return item
+        case .search:
+            let item = NSSearchToolbarItem(itemIdentifier: id)
+            item.searchField.placeholderString = "Search"
+            item.preferredWidthForSearchField = 220
+            return item
+        default:
+            return nil
         }
     }
 }
 ```
 
-## Search with scopes, suggestions, and recent searches
+Attach it in the window controller: `window.toolbar = mainToolbar.toolbar`,
+and keep `mainToolbar` alive as a property. Check both states in a real
+window capture (inspector open and closed), and once at the window's
+minimum width: nothing overlaps the column edge, each button appears once,
+and search is still reachable (toolbars.md, "Title and search").
 
-Search starts broad, a scope bar narrows it, recent searches show before
-typing with a way to clear them, and no results shows the query
-(design-rules.md rules 71 and 72).
+## Context menu, the Delete key, and feedback
+
+The table's context menu acts on the clicked row, or on the selection when
+the clicked row is part of it. The Delete key and Edit > Delete go through
+the same action.
 
 ```swift
-enum SearchScope: String, CaseIterable, Identifiable {
-    case all = "All Items", starred = "Starred"
-    var id: Self { self }
-}
+extension NotesViewController: NSMenuDelegate {
+    func installContextMenu() {
+        let menu = NSMenu()
+        menu.delegate = self
+        table.menu = menu
+    }
 
-struct SearchPage: View {
-    @Query(sort: \Item.createdAt, order: .reverse) private var items: [Item]
-    @State private var query = ""
-    @State private var scope = SearchScope.all
-    @AppStorage("recentSearches") private var recentStore = ""
+    /// The rows a context menu acts on: the selection when the clicked row
+    /// is in it, else the clicked row alone.
+    var clickedOrSelectedRows: IndexSet {
+        let clicked = table.clickedRow
+        if clicked < 0 || table.selectedRowIndexes.contains(clicked) { return table.selectedRowIndexes }
+        return IndexSet(integer: clicked)
+    }
 
-    private var recent: [String] { recentStore.split(separator: "\n").map(String.init) }
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        guard !clickedOrSelectedRows.isEmpty else { return }
+        menu.addItem(withTitle: "Delete", action: #selector(deleteClicked(_:)), keyEquivalent: "")
+    }
 
-    private var results: [Item] {
-        items.filter { item in
-            (scope == .all || item.isStarred)
-                && (query.isEmpty || item.title.localizedStandardContains(query))
+    @objc private func deleteClicked(_ sender: Any?) {
+        confirmDelete(notes(at: clickedOrSelectedRows))
+    }
+
+    /// The Delete key in the table. Keys like Delete are never menu shortcuts:
+    /// they would fire while a text field has focus.
+    override func keyDown(with event: NSEvent) {
+        if event.specialKey == .delete || event.specialKey == .deleteForward {
+            confirmDelete(selectedNotes)
+        } else {
+            super.keyDown(with: event)
         }
     }
+}
+```
 
-    var body: some View {
-        List(results) { item in Text(item.title) }
-            .overlay {
-                if !query.isEmpty && results.isEmpty {
-                    ContentUnavailableView.search(text: query)  // shows the query, so typos show
-                }
-            }
-            .searchable(text: $query, placement: .toolbar, prompt: "Search items")
-            .searchScopes($scope) {
-                ForEach(SearchScope.allCases) { Text($0.rawValue).tag($0) }
-            }
-            .searchSuggestions {
-                if query.isEmpty {
-                    ForEach(recent.prefix(5), id: \.self) { term in
-                        Text(term).searchCompletion(term)
-                    }
-                    if !recent.isEmpty {
-                        Button("Clear Recent Searches") { recentStore = "" }
-                    }
-                }
-            }
-            .onSubmit(of: .search) { remember(query) }
+For feedback on a change in place (starring, completing), animate the
+symbol: `imageView.addSymbolEffect(.bounce)`, or swap it with
+`imageView.setSymbolImage(newImage, contentTransition: .replace)`.
+
+## Search with recent searches
+
+Search starts broad, recent searches show before typing with a way to
+clear them, and no results shows the query (design-rules.md rules 71 and
+72). Filter the fetched results controller's predicate as the user types.
+
+```swift
+extension NotesViewController: NSSearchFieldDelegate {
+    func configureSearch(_ field: NSSearchField) {
+        field.delegate = self
+        field.sendsSearchStringImmediately = true
+        field.recentsAutosaveName = "NoteSearches"
+        let template = NSMenu()
+        let recentsTitle = NSMenuItem(title: "Recent Searches", action: nil, keyEquivalent: "")
+        recentsTitle.tag = NSSearchField.recentsTitleMenuItemTag
+        let recents = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+        recents.tag = NSSearchField.recentsMenuItemTag
+        let clear = NSMenuItem(title: "Clear Recent Searches", action: nil, keyEquivalent: "")
+        clear.tag = NSSearchField.clearRecentsMenuItemTag
+        let none = NSMenuItem(title: "No Recent Searches", action: nil, keyEquivalent: "")
+        none.tag = NSSearchField.noRecentsMenuItemTag
+        [recentsTitle, recents, .separator(), clear, none].forEach(template.addItem)
+        field.searchMenuTemplate = template
     }
 
-    private func remember(_ term: String) {
-        let term = term.trimmingCharacters(in: .whitespaces)
-        guard !term.isEmpty else { return }
-        recentStore = ([term] + recent.filter { $0 != term }).prefix(10).joined(separator: "\n")
+    func controlTextDidChange(_ obj: Notification) {
+        guard let field = obj.object as? NSSearchField else { return }
+        search(field.stringValue)
+    }
+
+    func search(_ query: String) {
+        // In fetch(): request.predicate = query.isEmpty ? nil
+        //   : NSPredicate(format: "title CONTAINS[cd] %@", query)
+        // When the results are empty and the query is not, show
+        // "No Results for “\(query)”" over the table, so typos show.
     }
 }
 ```
@@ -317,26 +305,18 @@ Header click sorts and reverses, columns resize and remember their widths,
 rows alternate, and long names truncate in the middle (rule 73).
 
 ```swift
-struct ItemTable: View {
-    @Query private var items: [Item]
-    @State private var sortOrder = [KeyPathComparator(\Item.createdAt, order: .reverse)]
-    @State private var selection = Set<Item.ID>()
-    @SceneStorage("ItemTable.columns") private var columns = TableColumnCustomization<Item>()
+extension NotesViewController {
+    func configureSorting() {
+        table.autosaveName = "NotesTable"
+        table.autosaveTableColumns = true
+        table.usesAlternatingRowBackgroundColors = true
+        table.tableColumns[0].sortDescriptorPrototype = NSSortDescriptor(key: "title", ascending: true,
+            selector: #selector(NSString.localizedStandardCompare(_:)))
+        // In the cell: textField.lineBreakMode = .byTruncatingMiddle
+    }
 
-    var body: some View {
-        Table(items.sorted(using: sortOrder), selection: $selection,
-              sortOrder: $sortOrder, columnCustomization: $columns) {
-            TableColumn("Title", value: \.title) { item in
-                Text(item.title).truncationMode(.middle)
-            }
-            .customizationID("title")
-            TableColumn("Created", value: \.createdAt) { item in
-                Text(item.createdAt, format: .dateTime.day().month().year())
-            }
-            .width(min: 90, ideal: 120)
-            .customizationID("created")
-        }
-        .alternatingRowBackgrounds()
+    func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
+        // Refetch with tableView.sortDescriptors as the request's sortDescriptors.
     }
 }
 ```
@@ -347,116 +327,127 @@ A drag into Finder writes a file the app (or any app) can open again. Apps
 that take no files get the title as text (rule 74).
 
 ```swift
-struct ItemFile: Transferable {
+final class NoteFilePromise: NSObject, NSFilePromiseProviderDelegate {
     let title: String
-    let notes: String
+    let body: String
 
-    static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(exportedContentType: .plainText) { file in
-            let url = URL.temporaryDirectory.appending(path: "\(file.title).txt")
-            try "\(file.title)\n\n\(file.notes)".write(to: url, atomically: true, encoding: .utf8)
-            return SentTransferredFile(url)
+    init(title: String, body: String) {
+        self.title = title
+        self.body = body
+    }
+
+    func filePromiseProvider(_ provider: NSFilePromiseProvider, fileNameForType fileType: String) -> String {
+        "\(title).txt"
+    }
+
+    func filePromiseProvider(_ provider: NSFilePromiseProvider, writePromiseTo url: URL,
+                             completionHandler: @escaping (Error?) -> Void) {
+        do {
+            try "\(title)\n\n\(body)".write(to: url, atomically: true, encoding: .utf8)
+            completionHandler(nil)
+        } catch {
+            completionHandler(error)
         }
-        ProxyRepresentation(exporting: \.title)
     }
 }
 
-// In a row:
-Text(item.title)
-    .draggable(ItemFile(title: item.title, notes: item.notes))
+// In the table's data source. Keep the promise alive until the drag ends
+// (the provider's userInfo holds it here).
+// func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? {
+//     let note = results.object(at: IndexPath(item: row, section: 0))
+//     let promise = NoteFilePromise(title: note.title, body: "")
+//     let provider = NSFilePromiseProvider(fileType: UTType.plainText.identifier, delegate: promise)
+//     provider.userInfo = promise
+//     return provider
+// }
 ```
 
 ## Restore the selection on relaunch
 
-Windows restore their frame on their own. `@SceneStorage` brings back UI
-state per window: the selection, the open tab, column widths. Store a
-stable id, never the data itself (rule 75).
+Windows restore their frame with `setFrameAutosaveName`. Bring back other
+UI state per window yourself: the selection, the open page, column widths
+(`autosaveTableColumns`). Store a stable id, never the data itself
+(rule 75).
 
 ```swift
-struct RestoringList: View {
-    @Query private var items: [Item]
-    @SceneStorage("selectedItem") private var selectedID = ""  // the item's uuid
+extension NotesViewController {
+    private static let selectionKey = "NotesSelection"
 
-    var body: some View {
-        List(items, id: \.uuid.uuidString, selection: Binding(
-            get: { selectedID.isEmpty ? nil : selectedID },
-            set: { selectedID = $0 ?? "" })) { item in
-            Text(item.title)
-        }
+    func saveSelection() {
+        let ids = selectedNotes.map(\.uuid.uuidString)
+        UserDefaults.standard.set(ids, forKey: Self.selectionKey)
+    }
+
+    func restoreSelection(in notes: [Note]) {
+        let ids = Set(UserDefaults.standard.stringArray(forKey: Self.selectionKey) ?? [])
+        let rows = IndexSet(notes.indices.filter { ids.contains(notes[$0].uuid.uuidString) })
+        table.selectRowIndexes(rows, byExtendingSelection: false)
+        if let first = rows.first { table.scrollRowToVisible(first) }
     }
 }
 ```
 
-## Custom chrome that follows the window
+Call `saveSelection()` from `tableViewSelectionDidChange(_:)`, and
+`restoreSelection(in:)` after the first fetch. Skip both when `APP_STORE`
+is set, so snapshots always start the same way.
 
-A custom selection fill turns gray when the window is not in front, keeps
-concentric corners with a minimum radius, and lets a rich background run
-under the sidebar (rules 14, 62, 63).
+## Custom selection that follows the window
+
+A custom selection fill uses the accent while the window is key and turns
+grey when it is not, as system selection does (rules 14, 62, 63). AppKit
+tells the row view through `isEmphasized`.
 
 ```swift
-struct CustomSidebarRow: View {
-    @Environment(\.appearsActive) private var appearsActive
-    let title: String
-    let selected: Bool
-
-    private var fill: AnyShapeStyle {
-        guard selected else { return AnyShapeStyle(.clear) }
-        return appearsActive ? AnyShapeStyle(.tint) : AnyShapeStyle(.quaternary)
-    }
-
-    var body: some View {
-        Text(title)
-            .padding(.horizontal, 8)
-            .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
-            .background(fill, in: ConcentricRectangle(corners: .concentric(minimum: 8)))
+final class TintedRowView: NSTableRowView {
+    override func drawSelection(in dirtyRect: NSRect) {
+        guard selectionHighlightStyle != .none else { return }
+        let fill: NSColor = isEmphasized ? .controlAccentColor : .unemphasizedSelectedContentBackgroundColor
+        fill.setFill()
+        NSBezierPath(roundedRect: bounds.insetBy(dx: Space.xs, dy: 1), xRadius: 6, yRadius: 6).fill()
     }
 }
 
-// On a hero image or tinted header that an inset sidebar covers:
-HeroImage().backgroundExtensionEffect()
+// In the table's delegate:
+// func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? { TintedRowView() }
 ```
 
-## Undo with SwiftData
-
-Register the reverse of each action yourself, on the window's undo manager.
-Do not set `mainContext.undoManager = UndoManager()`: a separate manager
-never reaches Edit > Undo. SwiftData's automatic undo also failed to save
-the reverted values in testing (the next fetch returned the old state).
-
-```swift
-@Environment(\.undoManager) private var undoManager
-
-func complete(_ todo: Todo) {
-    let uid = todo.uid                       // your own UUID, stable across saves
-    todo.isDone = true
-    try? context.save()
-    undoManager?.registerUndo(withTarget: store) { store in
-        store.find(uid)?.isDone = false     // look up again; the object may be new
-        try? store.context.save()
-    }
-    undoManager?.setActionName("Complete")
-}
-```
-
-When `groupsByEvent` is off, wrap registrations in `beginUndoGrouping()` and
-`endUndoGrouping()`, or the undo manager throws an exception that crashes
-later inside SwiftUI. Test undo in the self-test: do, undo, fetch again.
+Prefer the system selection. Use this only when the design calls for a
+selection the system does not draw, and record why in `CONTEXT.md`.
 
 ## Menu bar extra
 
-Add `MenuBarExtra` next to the main `Window` scene in `App.swift` for an always-available entry point. Let people turn it off in Settings (`isInserted:`), and never make it the only way to reach a feature: the app also has a Dock menu (menus.md). The icon is a template SF Symbol, so it follows the menu bar's light and dark look. Show a menu, as below. Use `.menuBarExtraStyle(.window)` only when the feature is too complex for a menu (a timer with controls, a small player). [HIG The menu bar]
+An `NSStatusItem` for an always-available entry point. Let people turn it
+off in Settings, and never make it the only way to reach a feature: the app
+also has a Dock menu (menus.md). The icon is a template SF Symbol, so it
+follows the menu bar's light and dark look. Show a menu. A panel is only
+for a feature too complex for a menu (a timer with controls, a small
+player). [HIG The menu bar]
 
 ```swift
-struct MenuBarScenePreview: Scene {
-    var body: some Scene {
-        MenuBarExtra("Starter", systemImage: "checkmark.circle") {
-            Button("Quick Add") {}
-                .keyboardShortcut("a")
-            Divider()
-            Button("Quit") { NSApp.terminate(nil) }
-                .keyboardShortcut("q")
+@MainActor
+final class StatusMenu: NSObject {
+    private var item: NSStatusItem?
+
+    func show(_ visible: Bool) {
+        guard visible else {
+            item.map(NSStatusBar.system.removeStatusItem)
+            item = nil
+            return
         }
+        guard item == nil else { return }
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        let image = NSImage(systemSymbolName: "checkmark.circle", accessibilityDescription: "App")
+        image?.isTemplate = true
+        item.button?.image = image
+        let menu = NSMenu()
+        menu.addItem(withTitle: "Quick Add", action: #selector(quickAdd(_:)), keyEquivalent: "a").target = self
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        item.menu = menu
+        self.item = item
     }
+
+    @objc private func quickAdd(_ sender: Any?) {}
 }
 ```
 
@@ -466,15 +457,16 @@ Each one was built and checked in a shipped app.
 
 ### Highlight parts of a text field while typing
 
-SwiftUI's `TextField` cannot color part of its text. For inline
-highlights (dates, tags), wrap a one-line `NSTextView` in an
-`NSViewRepresentable` and color ranges with temporary attributes, which
-change the look without changing the text:
+For inline highlights (dates, tags) in a one-line field, use a one-line
+`NSTextView` and colour ranges with temporary attributes, which change the
+look without changing the text:
 
 ```swift
-let range = NSRange(span.range, in: textView.string)
-textView.layoutManager?.addTemporaryAttribute(.backgroundColor, value: NSColor.systemPurple.withAlphaComponent(0.16), forCharacterRange: range)
-textView.layoutManager?.addTemporaryAttribute(.foregroundColor, value: NSColor.systemPurple, forCharacterRange: range)
+@MainActor
+func highlight(_ range: NSRange, in textView: NSTextView) {
+    textView.layoutManager?.addTemporaryAttribute(.backgroundColor, value: NSColor.systemPurple.withAlphaComponent(0.16), forCharacterRange: range)
+    textView.layoutManager?.addTemporaryAttribute(.foregroundColor, value: NSColor.systemPurple, forCharacterRange: range)
+}
 ```
 
 Override `keyDown` for Return (keyCode 36) and Escape (53), and
@@ -483,40 +475,39 @@ highlight. Draw a placeholder in `draw(_:)` when the string is empty.
 
 ### Let a CLI wake the app instantly
 
-When the app and a command-line tool share a SQLite file, the CLI can ping
-the app after each write. `notify_post` is not visible to Swift; the
+When the app and a command-line tool share a store, the CLI can ping the
+app after each write. `notify_post` is not visible to Swift; the
 CoreFoundation Darwin center is the same mechanism:
 
 ```swift
-CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
-                                     CFNotificationName("com.you.app.changed" as CFString), nil, nil, true)
+func pingApp() {
+    CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+                                         CFNotificationName("com.you.app.changed" as CFString), nil, nil, true)
+}
 ```
 
 The app adds an observer with `CFNotificationCenterAddObserver` and
-reloads. Keep a cheap fallback: `PRAGMA data_version` changes whenever
-another connection commits, so checking it once a second catches a missed ping.
+refetches. With Core Data, persistent history tracking lets the app merge
+exactly what the other process wrote.
 
 ### Services menu: "Add to MyApp" in every app
 
-In Info.plist, an `NSServices` entry with `NSMessage` (say `addTask`),
-`NSPortName`, and `NSSendTypes` (`NSStringPboardType`). In
-`applicationDidFinishLaunching`: `NSApp.servicesProvider = provider` and
-`NSUpdateDynamicServices()`. The provider method signature is
+In Info.plist (the `info: properties:` of `project.yml`), an `NSServices`
+entry with `NSMessage` (say `addTask`), `NSPortName`, and `NSSendTypes`
+(`NSStringPboardType`). In `applicationDidFinishLaunching`:
+`NSApp.servicesProvider = provider` and `NSUpdateDynamicServices()`. The
+provider method signature is
 `@objc func addTask(_ pasteboard: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString>)`.
-Test it without clicking: `NSPerformService("Add to MyApp", pasteboard)` from a small Swift script.
+Test it without clicking: `NSPerformService("Add to MyApp", pasteboard)`
+from a small Swift script.
 
 ### Menu bar extra that keeps the app alive
 
-`MenuBarExtra("App", systemImage: "checklist", isInserted: $showMenuBar) { ... }`
-(a menu; add `.menuBarExtraStyle(.window)` only for a feature too complex for one),
-and return `false` from `applicationShouldTerminateAfterLastWindowClosed`
-so closing the main window keeps the menu bar and global shortcuts working.
-
-Hide the main window instead of closing it. On macOS 26, closing a SwiftUI
-`Window` scene, opening it again, and then changing state crashed AppKit in
-a constraint loop every time. Set a forwarding `NSWindowDelegate` whose
-`windowShouldClose` calls `orderOut(nil)` and returns false. Prove it with
-a self-test that closes and reopens the window 20 times.
+Show the status item, and return `false` from
+`applicationShouldTerminateAfterLastWindowClosed` so closing the main
+window keeps the menu bar and global shortcuts working. Reopen the window
+from the status menu and from `applicationShouldHandleReopen(_:hasVisibleWindows:)`
+(a click on the Dock icon).
 
 ### Notifications and the Dock badge
 
@@ -524,15 +515,15 @@ a self-test that closes and reopens the window 20 times.
 unread notifications, never other numbers, and goes back to `nil` at zero.
 A notification never says "open the app to do X", never repeats one
 already shown, and offers at most four actions with title-case labels, none
-of them "Open". Errors go in an alert inside the app, not a notification. Notifications need the
-user's yes: if the permission prompt appears while nobody is there, macOS
-records "denied" and `requestAuthorization` keeps failing with "not
-allowed". Show the status in Settings and open
+of them "Open". Errors go in an alert inside the app, not a notification.
+Notifications need the user's yes: if the permission prompt appears while
+nobody is there, macOS records "denied" and `requestAuthorization` keeps
+failing with "not allowed". Show the status in Settings and open
 `x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=<bundle id>`.
 Implement the delegate's `didReceive` as `nonisolated`, call the
 completion handler right away, and hop to the main actor for the work.
 Skip notifications, login items, and anything else with a system prompt
-when the store points to `/tmp`, so tests never trigger a prompt.
+when `APP_STORE` is set, so tests never trigger a prompt.
 
 ### A floating capture panel without a title bar
 

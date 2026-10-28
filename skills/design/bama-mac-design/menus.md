@@ -17,7 +17,7 @@ Edit, Window, and Help.
 - Icons
 - Context menus
 - Dock menu
-- SwiftUI
+- AppKit
 
 ## Menu bar order
 
@@ -57,8 +57,7 @@ follow the app's structure, most general first (Mail: Mailbox, Message).
   (Copy, Copy Link, Copy as Markdown) only the first gets the symbol.
 - No icon when no symbol clearly fits. Use the standard symbols from
   design-rules.md rule 65.
-- In SwiftUI menu bar commands an item shows its icon only with
-  `.labelStyle(.titleAndIcon)` (WWDC26-269).
+- Set a menu item's icon with `item.image = NSImage(systemSymbolName:accessibilityDescription:)`.
 
 ## Context menus
 
@@ -76,41 +75,44 @@ Mail, New Message), plus the open windows the system adds. Each item also
 exists elsewhere in the app.
 
 ```swift
-final class AppDelegate: NSObject, NSApplicationDelegate {
+extension AppDelegate {
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
         let menu = NSMenu()
-        menu.addItem(withTitle: "New Task", action: #selector(newTask), keyEquivalent: "")
+        menu.addItem(withTitle: "New Task", action: #selector(newTaskFromDock(_:)), keyEquivalent: "")
         return menu
     }
 
-    @objc private func newTask() { /* same action as File > New Task */ }
+    @objc private func newTaskFromDock(_ sender: Any?) { /* same action as File > New Task */ }
 }
 ```
 
-## SwiftUI
+## AppKit
+
+The skeleton's `MainMenu.xib` has the App, File, Edit, View, Window, and
+Help menus. Add items there, or build them in code at launch:
 
 ```swift
-.commands {
-    SidebarCommands()                 // View > Show Sidebar, Control-Command-S
-    ToolbarCommands()                 // View > Show Toolbar, Customize Toolbar
-    CommandGroup(replacing: .newItem) {
-        Button("New Task") { model.addTask() }
-            .keyboardShortcut("n")
-    }
-    CommandGroup(after: .sidebar) {
-        // A label that follows the state.
-        Button(model.showsCompleted ? "Hide Completed" : "Show Completed") {
-            model.showsCompleted.toggle()
-        }
-        .keyboardShortcut("h", modifiers: [.command, .shift])
-    }
+@MainActor
+func addNoteCommands(to mainMenu: NSMenu) {
+    guard let file = mainMenu.item(withTitle: "File")?.submenu else { return }
+    let new = NSMenuItem(title: "New Note", action: #selector(NotesViewController.newNote(_:)), keyEquivalent: "n")
+    file.insertItem(new, at: 0)   // target nil: the first responder handles it
+
+    guard let view = mainMenu.item(withTitle: "View")?.submenu else { return }
+    view.insertItem(NSMenuItem(title: "Show Sidebar", action: #selector(NSSplitViewController.toggleSidebar(_:)),
+                               keyEquivalent: "s"), at: 0)
+    view.items[0].keyEquivalentModifierMask = [.command, .control]
 }
 ```
 
-- A `Window` or `WindowGroup` scene gets the Window and Help menus from the
-  system. Keep them.
+- Leave the target `nil`, so the action goes to the first responder: the
+  view controller that owns the selection. A label that follows the state
+  ("Hide Completed", "Delete 3 Notes") is set in
+  `validateMenuItem(_:)` (bama-swift, "Menu commands").
+- The Window and Help menus are system menus (`systemMenu="window"`,
+  `systemMenu="help"`): macOS fills them. Keep them.
 - Undo names the action: `undoManager?.setActionName("Add Task")` after
-  registering the undo. The Edit menu then reads "Undo Add Task".
+  the change. The Edit menu then reads "Undo Add Task".
 
 Done when the menu bar follows the order above, every toolbar and context
 menu command has a menu bar item, and no context menu shows a shortcut or a

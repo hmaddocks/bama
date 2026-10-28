@@ -1,17 +1,19 @@
 ---
 name: bama-mac-design
-description: Design rules that make a SwiftUI app look and feel like a native Mac app on macOS 26 and later, from Apple's eight design principles to Liquid Glass, layout, toolbars, menus, search, keyboard, type, color, and dark mode. Use when building or reviewing any window, sidebar, toolbar, menu, panel, or settings screen, or when the user asks for a more native, Apple-like, or better designed app.
+description: Design rules that make an AppKit app look and feel like a native Mac app on macOS 26 and later, from Apple's eight design principles to Liquid Glass, layout, toolbars, menus, search, keyboard, type, color, and dark mode. Use when building or reviewing any window, sidebar, toolbar, menu, panel, or settings screen, or when the user asks for a more native, Apple-like, or better designed app.
 ---
 
 # Mac design
 
 Apple already designed your app. Pick the right system parts, arrange them,
 and stay out of their way. Use the system first. Add custom design only
-where the system has nothing.
+where the system has nothing, and only after asking: name the AppKit
+default and what departing from it costs.
 
 - The full checklist with sources: [design-rules.md](design-rules.md).
   Use it for reviews.
-- Copyable SwiftUI code: [patterns.md](patterns.md).
+- Copyable AppKit code: [patterns.md](patterns.md). The split view, table,
+  sheets, and undo are in `bama-swift`'s appkit-recipes.md.
 - The Settings window: [settings.md](settings.md).
 - Toolbars: which item goes where, per column: [toolbars.md](toolbars.md).
 - The menu bar, context menus, and the Dock menu: [menus.md](menus.md).
@@ -70,31 +72,32 @@ A to-do app lives in its quick-add panel.
 
 ## Layout
 
-- `NavigationSplitView`: sidebar, content, detail. Global actions in the
+- `NSSplitViewController`: sidebar, content, detail. Global actions in the
   toolbar. No sidebar when navigation is one level.
-- Selection details in `.inspector` or the detail column.
+- Selection details in an inspector split view item or the detail column.
 - The UI frames the user's content. Ask what the least UI is that lets it
   stand out.
-- Progressive disclosure: an empty page shows one `ContentUnavailableView`
-  with the first action. Filters appear once there is content.
+- Progressive disclosure: an empty page shows one centred message (what the
+  page is for) with the first action as a button. Filters appear once there is content.
 - Keep the top 50 pt free for dragging the window.
 - Spacing from `Space`, on a 4 pt grid: 20 pt window margins, 8 pt
-  between related controls, 20 pt between groups. `.controlSize` for dense
+  between related controls, 20 pt between groups. `controlSize` for dense
   areas, never hard-coded heights.
 
 ## Liquid Glass
 
 - Glass is for the navigation and control layer: toolbars, sidebars,
   floating buttons, popovers. Content (rows, cards, documents) gets none.
-- Never glass on glass. Group neighboring custom glass in
-  `GlassEffectContainer`.
+- Never glass on glass. Group neighboring custom glass in one
+  `NSGlassEffectContainerView`.
 - Standard components get glass on their own. Delete custom backgrounds
   behind bars and sheets.
-- `.glassEffect()` only for a custom floating control. Tint only to carry
+- `NSGlassEffectView` only for a custom floating control. Tint only to carry
   meaning. Interactive glass (the bounce on click) only on controls, and
   sparingly.
-- Custom chrome dims with the window: read `@Environment(\.appearsActive)`
-  (patterns.md, "Custom chrome that follows the window").
+- Custom chrome dims with the window: check `isEmphasized` on a row view,
+  or the window's `isKeyWindow` (patterns.md, "Custom selection that follows
+  the window").
 
 ## Toolbars and menus
 
@@ -102,21 +105,20 @@ A to-do app lives in its quick-add panel.
   over the sidebar, New and Sort over the list, actions on the selection
   over the detail, the inspector toggle over the inspector. Full rules and
   a checked example: [toolbars.md](toolbars.md).
-- At most three toolbar groups, split with `ToolbarSpacer`. Monochrome SF
-  Symbols, each with a title and `.help`. At most one prominent action,
+- At most three toolbar groups, split with `.space`. Monochrome SF
+  Symbols, each with a `label` and a `toolTip`. At most one prominent action,
   only for a completing action like Done or Send. Most main windows have
   none.
-- `SidebarCommands()`, `ToolbarCommands()`, and (with an inspector)
-  `InspectorCommands()` in `.commands`, so the View menu can show and hide
-  each part.
+- View menu items for `toggleSidebar:`, `toggleToolbarShown:`, and (with an
+  inspector) `toggleInspector:`, so the View menu can show and hide each
+  part.
 - Every toolbar button and feature also lives in the menu bar with a
-  shortcut (`.commands`, `CommandGroup`, `CommandMenu`). Apple's menu order
+  shortcut (`MainMenu.xib`, or `NSMenuItem` in code). Apple's menu order
   and labels: [menus.md](menus.md).
 - Menu icons only on key actions, all or none in a group.
 - Standard shortcuts keep their meaning: Command-C, V, X, Z, W, Q, N, comma.
-- Disable menu items that do not apply; keep them visible. SwiftUI menus
-  only update when the selection is passed into the commands from the App
-  (`bama-swift`, "Menu commands").
+- Disable menu items that do not apply; keep them visible. Validate them in
+  `validateMenuItem(_:)` (`bama-swift`, "Menu commands").
 - Window titles name the content ("Today"), not the app.
 
 ## Windows open calm
@@ -139,12 +141,14 @@ A to-do app lives in its quick-add panel.
   in the same frame.
 - Return is the default action, Escape cancels, Delete removes, Space
   previews, arrows move.
-- New items get focus (`@FocusState`) so the user can type at once.
-- Teach shortcuts in menus, `.help` tooltips, and a list in Settings.
+- New items get focus (`window.makeFirstResponder(field)`) so the user can
+  type at once.
+- Teach shortcuts in menus, tooltips, and a list in Settings.
 
 ## Color, type, dark mode
 
-- Text is `.primary`, `.secondary`, `.tertiary`. System backgrounds. No
+- Text is `.labelColor`, `.secondaryLabelColor`, `.tertiaryLabelColor`.
+  System backgrounds. No
   fixed white, black, or gray in chrome.
 - One accent color. Status color always comes with an icon or a word.
 - macOS text styles: body 13 pt, nothing under 10 pt. Never iOS sizes.
@@ -153,24 +157,28 @@ A to-do app lives in its quick-add panel.
 - Dark mode is its own palette with more distance between tones. Check
   both in every snapshot.
 - Accent-colored text uses a deep shade in light mode and a light shade in
-  dark mode. Text and symbols on an accent fill use the theme's on-accent
-  color, never a fixed white (white fails on yellow and green accents).
+  dark mode. Text and symbols on an accent fill use
+  `.alternateSelectedControlTextColor`, never a fixed white (white fails on
+  yellow and green accents).
 - Hover and press never lower contrast. Text over user content
   (screenshots, video) sits on a dark scrim or capsule.
-- `Label` for icon and text, SF Symbols for every icon.
+- SF Symbols for every icon (`NSImage(systemSymbolName:accessibilityDescription:)`).
 
 ## Interaction
 
-- `.contextMenu` on everything a user can act on. It hides items that do
+- A context menu (`menu` on the view, built in `menuNeedsUpdate(_:)`) on
+  everything a user can act on. It hides items that do
   not apply and shows no shortcuts. Hover states on custom controls. Mac
   controls are 22 to 28 pt tall, not 44.
-- Drag and drop in and out with `Transferable`. A drag to Finder makes a
-  real file. `ShareLink` where it fits.
+- Drag and drop in and out with `NSPasteboardWriting` and
+  `NSFilePromiseProvider`. A drag to Finder makes a real file. An
+  `NSSharingServicePicker` where sharing fits.
 - Relaunch brings back the windows, the selection, and the scroll position
-  (`@SceneStorage`). Quit never asks unless typed work would be lost.
+  (frame autosave, and saved ids in `UserDefaults`). Quit never asks unless
+  typed work would be lost.
 - Undo for every destructive or bulk action, in Settings too. A one-click
   trash button needs Undo in place.
-- `Settings` scene, opened with Command-comma: tabs, one grouped Form per
+- A Settings window, opened with Command-comma: tabs, one grid of rows per
   tab, sized to its content. Structure and rows: [settings.md](settings.md).
 - Respect Reduce Motion and Reduce Transparency. Label icon-only buttons.
 
@@ -184,7 +192,7 @@ match the system: concentric radii, system fonts, system spacing.
 
 Snapshot every surface in light and dark: each page, the menu bar menu,
 each panel and overlay (launcher, toasts, cards), editors, and each
-Settings tab (snapshot mode does pages and Settings tabs). Look for focus
+Settings tab (register each one as a snapshot page). Look for focus
 rings, selected text, scroll bars with nothing to scroll, and empty bands
 under short content. Capture each window as the key window: a snapshot of
 an inactive window (gray traffic lights, dim toggles) or with flattened

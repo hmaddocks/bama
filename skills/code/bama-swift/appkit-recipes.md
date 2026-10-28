@@ -189,9 +189,11 @@ final class NotesViewController: NSViewController, NSTableViewDataSource, NSTabl
         table.reloadData()
     }
 
-    var selectedNotes: [Note] {
-        table.selectedRowIndexes.map { results.object(at: IndexPath(item: $0, section: 0)) }
+    func notes(at rows: IndexSet) -> [Note] {
+        rows.map { results.object(at: IndexPath(item: $0, section: 0)) }
     }
+
+    var selectedNotes: [Note] { notes(at: table.selectedRowIndexes) }
 
     func numberOfRows(in tableView: NSTableView) -> Int { results?.fetchedObjects?.count ?? 0 }
 
