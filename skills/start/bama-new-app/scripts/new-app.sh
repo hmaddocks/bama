@@ -16,7 +16,8 @@ dest="$parent/$name"
 [[ ! -e "$dest/Package.swift" ]] || { echo "$dest already has a Package.swift"; exit 1; }
 
 mkdir -p "$dest"
-cp -R -n "$template/" "$dest/"
+# rsync, not cp -n: macOS cp -n exits 1 whenever it skips a file that exists.
+rsync -a --ignore-existing "$template/" "$dest/"
 mv "$dest/Sources/__APP_NAME__" "$dest/Sources/$name"
 mv "$dest/Sources/__APP_NAME__Kit" "$dest/Sources/${name}Kit"
 mv "$dest/Tests/__APP_NAME__KitTests" "$dest/Tests/${name}KitTests"
@@ -27,6 +28,10 @@ grep -rlI "__APP_NAME__\|__BUNDLE_ID__\|__BEAR_TAG__" "$dest" | while read -r f;
 done
 # Claude Code reads CLAUDE.md; other agents read AGENTS.md. One file, two names.
 [[ -e "$dest/CLAUDE.md" ]] || ln -s AGENTS.md "$dest/CLAUDE.md"
+# The triage-tag script lives with bama-app-brief; the app keeps a copy for its tickets.
+of_setup=${0:A:h:h:h}/bama-app-brief/scripts/omnifocus-setup.sh
+[[ -e "$dest/tools/omnifocus-setup.sh" || ! -f "$of_setup" ]] || cp "$of_setup" "$dest/tools/omnifocus-setup.sh"
+[[ -f "$dest/tools/omnifocus-setup.sh" ]] && chmod +x "$dest/tools/omnifocus-setup.sh"
 chmod +x "$dest/build.sh" "$dest/tools/make_icon.sh" "$dest/tools/icon_review.sh" "$dest/tools/grid-lint.sh" "$dest/tools/check-layout.swift" "$dest/tools/snap.sh" "$dest/tools/selftest.sh"
 
 cd "$dest"
