@@ -93,7 +93,7 @@ It builds one story per commit. Before each commit it snapshots every page in li
 <tr><td nowrap><a href="skills/design/bama-app-icon/SKILL.md"><samp>bama-app-icon</samp></a></td><td>A Liquid Glass icon written as an Icon Composer file, checked in every look</td></tr>
 <tr><td rowspan="3" valign="top"><b>Ship</b></td><td nowrap><a href="skills/ship/bama-build-and-verify/SKILL.md"><samp>bama-build-and-verify</samp></a></td><td>Build, install, snapshot every page in light and dark, look at them</td></tr>
 <tr><td nowrap><a href="skills/ship/bama-test-app/SKILL.md"><samp>bama-test-app</samp></a></td><td>Swift Testing, an in-app self-test, a debug bridge an agent can drive</td></tr>
-<tr><td nowrap><a href="skills/ship/bama-improve-loop/SKILL.md"><samp>bama-improve-loop</samp></a></td><td>Works through the backlog one story per commit until a milestone is done</td></tr>
+<tr><td nowrap><a href="skills/ship/bama-improve-loop/SKILL.md"><samp>bama-improve-loop</samp></a></td><td>Works through a milestone's OmniFocus tickets, one commit each, until the milestone is done</td></tr>
 </table>
 
 ## Install
