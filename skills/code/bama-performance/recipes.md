@@ -9,7 +9,7 @@ bugs in shipped apps.
 - Show first, work after
 - Drawing: let the GPU composite
 - Images
-- Lists and SwiftUI updates
+- Lists and table views
 - Background work with Swift concurrency
 - Timers, polling, and energy
 - Measuring
@@ -26,8 +26,10 @@ bugs in shipped apps.
   app to answer. A stuck app stalls you. Fix:
   `AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), 1.0)` once
   at launch, and never call AX in a loop on the main thread.
-- File, network, and database reads in `body` or `onAppear`. Fix: load in a
-  `.task { }` that awaits a `nonisolated` or `@concurrent` function.
+- File, network, and large store reads in `viewDidLoad`, `viewWillAppear`,
+  or a table's `viewFor` callback. Fix: start a `Task { }` that awaits a
+  `nonisolated` or `@concurrent` function (or `performBackgroundTask`), then
+  update the view on the main actor.
 
 Find the frozen call:
 
@@ -78,11 +80,12 @@ the new row, save in the background, offer Undo.
 
 - In an editor, draw the picture once as its own layer, and redraw only the
   shapes on top while the user drags.
-- Never draw a full-screen image in `draw(_:)` or a SwiftUI `Canvas` per
-  mouse move. A 5K screen is 15 million pixels per frame.
-- SwiftUI: `.drawingGroup()` flattens a complex static view (many shapes,
-  gradients) into one Metal texture. Do not put it on views with text
-  fields or system controls.
+- Never draw a full-screen image in `draw(_:)` per mouse move. A 5K screen
+  is 15 million pixels per frame.
+- A complex static view (many shapes, gradients): give it a layer
+  (`wantsLayer = true`), draw once, and set
+  `layerContentsRedrawPolicy = .onSetNeedsDisplay`, so it redraws only when
+  asked.
 - Many shadows and blurs on list rows cost a lot. Use one shadow on the
   container, not one per row.
 - Image filters (blur, pixelate): one shared `CIContext`, made once, which
@@ -105,32 +108,41 @@ the new row, save in the background, offer Undo.
 - Text recognition (Vision `RecognizeTextRequest`) runs off the main
   thread, after the picture is on screen.
 
-## Lists and SwiftUI updates
+## Lists and table views
 
-- Never `ForEach($array)` over data the user can delete. A row can read an
-  index that no longer exists and crash. Iterate values, and look up a
-  binding by id.
+- Use `NSTableView` or `NSOutlineView` for anything longer than a screen.
+  They make cells only for visible rows and reuse them
+  (`makeView(withIdentifier:owner:)`). A stack view of rows builds every
+  row.
+- Reload only what changed: `reloadData(forRowIndexes:columnIndexes:)`, or
+  `insertRows`/`removeRows` inside `beginUpdates`/`endUpdates`. A full
+  `reloadData()` on every keystroke of a search is fine up to a few
+  thousand rows; measure before going further.
 - Live lists (search results, a window switcher) do not animate. Speed wins
-  over motion. Rows cross-fade in place at most.
-- One `@Observable` model per area. A view reads only the properties it
-  shows, so a change re-renders only those views. Mark caches and
-  timers `@ObservationIgnored`.
-- Sort and filter in the model, not in `body`. `body` runs often.
-- Large lists: `LazyVStack` loads rows on demand, and a plain `VStack`
-  builds every row. A `List` with `Section`s can also build every row on a
-  page switch (306 of 333 rows in one measurement). Count row `body` calls
-  before you trust it.
+  over motion.
+- Sort and filter in the core package or in the fetch request, not in
+  `tableView(_:viewFor:row:)`, which runs for every visible row on every
+  scroll.
+- Row heights: `usesAutomaticRowHeights` measures every row it shows.
+  Fixed heights (`rowHeight`) are cheaper for long uniform lists.
 
-## SwiftData
+## Core Data
 
-- Read sort keys once, then sort. Reading `@Model` properties inside a sort
-  comparator costs an observation and a fault per comparison.
-- Min and max: a `FetchDescriptor` with a sort and `fetchLimit = 1`, not a
+- Sort and filter in the fetch request (`sortDescriptors`, `predicate`), so
+  SQLite does the work. Sorting fetched objects in Swift fires a fault per
+  object.
+- Min and max: a fetch request with a sort and `fetchLimit = 1`, not a
   fetch of every object.
-- A `body` that reads thousands of model properties pays observation
-  tracking for each one. Map to plain structs for big lists.
-- `persistentModelID` changes on the first save. Select and look up by your
-  own `uid: UUID` property.
+- Counts: `count(for:)`, not `fetch(...).count`.
+- Big lists: `fetchBatchSize` (about two screens of rows) keeps memory flat;
+  `propertiesToFetch` with `.dictionaryResultType` for read-only summaries.
+- Bulk changes: `NSBatchUpdateRequest` and `NSBatchDeleteRequest` run in
+  SQLite, then merge the changes into the view context
+  (`NSManagedObjectContext.mergeChanges(fromRemoteContextSave:into:)`).
+- Heavy imports run in `performBackgroundTask`, saving every few hundred
+  objects; the view context merges them automatically.
+- `objectID` changes on the first save. Select and look up by the entity's
+  `uuid` attribute.
 
 ## Background work with Swift concurrency
 
@@ -221,10 +233,10 @@ environment, secrets included.
 
 ### Causes found this way
 
-- **Panels with a text field**: every first-responder change re-runs
-  SwiftUI's focus graph (10 to 15 ms each). Do not call
-  `makeFirstResponder` in `show()`. Resign the old field while hiding, and
-  let the view focus its field one turn later.
+- **Panels with a text field**: a first-responder change on a window with
+  a hosted SwiftUI view re-runs SwiftUI's focus graph (10 to 15 ms each).
+  In a hosted piece, do not call `makeFirstResponder` in `show()`. Resign
+  the old field while hiding, and focus the field one turn later.
 - `NSRunningApplication.icon` asks NSWorkspace on every call (about 1 ms per
   app). Cache icons per process id.
 - **Cold first open**: a panel and its hosting view built on the first key

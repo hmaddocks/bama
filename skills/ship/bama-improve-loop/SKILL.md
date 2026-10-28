@@ -52,7 +52,7 @@ yet, call the Skill tool with `bama-ux-design` first.
 
 Write two to five lines in your head or in the commit body: which files
 change, which model fields are new, which menu command and shortcut it adds,
-which snapshot page shows it. If the ticket needs a new SwiftData field,
+which snapshot page shows it. If the ticket needs a new Core Data attribute,
 give it a default value so existing databases keep loading.
 
 ## 3. Code

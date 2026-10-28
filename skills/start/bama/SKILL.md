@@ -26,7 +26,7 @@ With the app's name, look in this order. The first missing piece is the
 step.
 
 1. Bear: the note "<AppName> brief". Missing: `bama-app-brief`.
-2. The app's folder has no `Package.swift`: `bama-new-app`.
+2. The app's folder has no `project.yml`: `bama-new-app`.
 3. OmniFocus, project "<AppName> App": the first incomplete milestone
    action.
    - Its note has no "Spec:" line: `bama-feature-spec`.
@@ -55,7 +55,7 @@ which.
 | The user wants to | Skill |
 | --- | --- |
 | Start a new project | `bama-new-app` |
-| Write or fix Swift and SwiftUI code | `bama-swift` |
+| Write or fix Swift, AppKit, or Core Data code | `bama-swift` |
 | Hook into macOS: hotkeys, menu bar, windows, screen capture, Shortcuts | `bama-os-integrations` |
 | Make it fast: hangs, stutter, GPU, video, memory | `bama-performance` |
 | Let Claude Code, Codex, or scripts drive the app: a CLI, an MCP server | `bama-agent-cli` |

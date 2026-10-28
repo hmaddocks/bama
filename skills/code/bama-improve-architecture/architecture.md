@@ -18,23 +18,25 @@ CLI, an engine (media, sync, parsing), or a second contributor.
 ## Targets and dependency direction
 
 ```text
-App (SwiftUI, menus, windows) -> feature and engine targets -> Core
+App target (AppKit: windows, view controllers, menus) -> engine targets -> <App>Core
 ```
 
-Never the reverse. Core knows nothing about SwiftUI, AVFoundation, or Metal.
+Never the reverse. `<App>Core` knows nothing about AppKit, UIKit,
+AVFoundation, or Metal. When it grows, split the package, not the app
+target:
 
 ```swift
-// Package.swift
-.target(name: "AppCore"),                                  // values, documents, rules, math
-.target(name: "AppStore", dependencies: ["AppCore"]),      // persistence, sync
+// <App>Core/Package.swift
+.target(name: "AppCore"),                                  // values, rules, math
+.target(name: "AppStore", dependencies: ["AppCore"]),      // Core Data, sync
 .target(name: "AppEngine", dependencies: ["AppCore"]),     // media, rendering, heavy work
-.executableTarget(name: "App", dependencies: ["AppCore", "AppStore", "AppEngine"]),
-.executableTarget(name: "appctl", dependencies: ["AppCore", "AppStore"]),   // CLI
 .testTarget(name: "AppCoreTests", dependencies: ["AppCore"]),
 ```
 
-A CLI on the same core keeps the core free of UI by force. The app target
-stays thin: views and one `@MainActor` model per page.
+The app target in `project.yml` depends on the products it needs. The
+compiler then keeps UI types out of the core by force, and a UIKit app can
+share the same products. The app target stays thin: view controllers that
+read the store and call core functions.
 
 ## Edits as pure operations
 
@@ -60,15 +62,21 @@ public extension Document {
 ## Split state by update rate
 
 A value that changes many times a second (a playhead, a meter, a timer)
-lives in its own small observable object. Only the views that show it
-observe it. Putting it on the page model re-renders every view on the page.
+lives in its own small object. Only the views that show it listen to it.
+Posting it through the page's view controller, or a notification every
+view hears, redraws the whole page.
 
 ```swift
-@MainActor @Observable final class PlayheadClock { var frame = 0 }
+@MainActor final class PlayheadClock {
+    var frame = 0 { didSet { onChange?(frame) } }
+    var onChange: ((Int) -> Void)?
+}
 
-struct PlayheadLabel: View {
-    let clock: PlayheadClock
-    var body: some View { Text("\(clock.frame)").monospacedDigit() }
+final class PlayheadLabel: NSTextField {
+    func observe(_ clock: PlayheadClock) {
+        font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        clock.onChange = { [weak self] frame in self?.stringValue = "\(frame)" }
+    }
 }
 ```
 
@@ -124,8 +132,8 @@ hooks live in a test target or behind a launch flag, not in app files.
 - Synthesized `Codable` can change the bytes of old files when you add a
   property (it writes `"items": []`). Keep a test that loads and re-saves
   an old file byte for byte.
-- `model.child?.field = f(model.child)` on an `@Observable` type can crash
-  with an exclusivity violation. Read into a `let` first.
+- `model.child?.field = f(model.child)` on a class with property observers
+  can crash with an exclusivity violation. Read into a `let` first.
 - A menu action named like an AppKit setter (`setAppearance:`) crashes.
   Name actions `applyAppearance(_:)`.
 - A huge function can crash the release optimizer. Split it.

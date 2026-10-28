@@ -15,7 +15,7 @@ measurements on Apple silicon.
 - Playback
 - Reading and encoding
 - Overlays and filters
-- SwiftUI next to a media engine
+- Views next to a media engine
 - AVFoundation lifetimes
 - Measuring media work
 
@@ -129,15 +129,17 @@ on the GPU and 6 ready ahead. Present from a `CADisplayLink`.
   .outputColorSpace: NSNull(), .cacheIntermediates: false,
   .workingFormat: CIFormat.RGBAf])`.
 
-## SwiftUI next to a media engine
+## Views next to a media engine
 
-- A per-frame value on a model that 74 views observe cost 36 to 39 ms per
-  frame. Move it to its own small object (see the `bama-improve-architecture`
+- A per-frame value pushed to many views (every view that observes the
+  playhead) is expensive: one app paid 36 to 39 ms per frame for 74
+  observers. Give the per-frame value its own small object that only the
+  playhead and the time label watch (see the `bama-improve-architecture`
   skill, architecture.md).
 - Scopes and meters: set `CALayer.contents` inside one `CATransaction`.
   Keep static parts as constant views. Refresh text at 2 Hz.
-- Never build a publisher inside `body` and pass it to `.onReceive`. It
-  resubscribes forever.
+- A display link (`view.displayLink(target:selector:)`) drives per-frame
+  updates; stop it when the view leaves the window.
 
 ## AVFoundation lifetimes
 

@@ -67,7 +67,7 @@ Change no code in this step.
    - Slow work on the main thread or a real-time queue.
    - Protocols with one conformer and no test adapter.
    - Drifted copies: the same `private struct <Name>` defined in two files
-     (`grep -rn 'private struct' Sources/ | awk '{print $3}' | sort | uniq -d`).
+     (`grep -rn 'private struct' <App>/ <App>Core/Sources/ | awk '{print $3}' | sort | uniq -d`).
    - A settings or detail page that lives far from its feature. Pages live
      in the feature's folder.
    - Pure logic inside a `@MainActor` store, which tests cannot compile
@@ -83,7 +83,7 @@ Write `docs/architecture-review-<YYYY-MM-DD>.md`, one card per candidate:
 ```markdown
 ## <Title in domain nouns>  [Strong | Worth exploring | Speculative]
 
-Files: Sources/App/EditorModel.swift (1,750 lines), ...
+Files: Editor/EditorViewController.swift (1,750 lines), ...
 Signal: <which trigger above>
 Problem: <what is hard to change today, with one example>
 Proposal: <the new module and its interface, 15 lines of Swift at most>

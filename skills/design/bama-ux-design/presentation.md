@@ -1,9 +1,9 @@
 # Where a feature opens
 
 Code for each row of the surface table in [SKILL.md](SKILL.md). It compiles
-on macOS 26 with Swift 6.2 and main-actor default isolation (the
-`bama-new-app` template). `Item` is the template's SwiftData model, with a
-`dueDate: Date` field added for the popover example.
+on macOS 26 with Swift 6 in the `bama-new-app` skeleton. `Note`,
+`NotesViewController`, and `NoteSheetController` come from `bama-swift`'s
+[appkit-recipes.md](../../code/bama-swift/appkit-recipes.md).
 
 ## Contents
 
@@ -22,18 +22,27 @@ on macOS 26 with Swift 6.2 and main-actor default isolation (the
 ## Inline
 
 Use for one value on something already on screen. No surface opens, so
-nothing needs closing. Save on Return or when focus leaves the field.
+nothing needs closing. Save on Return or when focus leaves the field: make
+the cell's text field editable, and save in its action.
 
 ```swift
-struct ItemRow: View {
-    @Bindable var item: Item
-    @FocusState private var editing: Bool
+extension NotesViewController {
+    /// Call when making a row's cell: the title edits in place.
+    func makeEditable(_ field: NSTextField) {
+        field.isEditable = true
+        field.target = self
+        field.action = #selector(titleEdited(_:))
+    }
 
-    var body: some View {
-        TextField("Title", text: $item.title)
-            .textFieldStyle(.plain)
-            .focused($editing)
-            .onSubmit { editing = false }
+    @objc func titleEdited(_ sender: NSTextField) {
+        let row = table.row(for: sender)
+        guard row >= 0 else { return }
+        let note = notes(at: IndexSet(integer: row))[0]
+        let title = sender.stringValue.trimmingCharacters(in: .whitespaces)
+        guard !title.isEmpty, title != note.title else { sender.stringValue = note.title; return }
+        note.title = title
+        store.viewContext.undoManager?.setActionName("Rename Note")
+        try? store.save()
     }
 }
 ```
@@ -41,19 +50,36 @@ struct ItemRow: View {
 ## Inspector
 
 Use for details of the selection while people keep working in the list.
-It stays open across selections. `InspectorCommands()` on the scene adds
-View > Show Inspector, Control-Command-I.
+It stays open across selections. It is a split view item, with the system
+`.toggleInspector` toolbar item and View > Show Inspector,
+Control-Command-I (bama-mac-design toolbars.md).
 
 ```swift
-List(items, selection: $selection) { item in ItemRow(item: item) }
-    .inspector(isPresented: $showInspector) {
-        if let item = selection.flatMap(find) {
-            ItemInspector(item: item)
-        } else {
-            ContentUnavailableView("No Selection", systemImage: "sidebar.right")
-        }
+final class NoteInspectorController: NSViewController {
+    private let noteTitle = NSTextField(labelWithString: "")
+    private let empty = NSTextField(labelWithString: "No Selection")
+
+    override func loadView() {
+        empty.textColor = .secondaryLabelColor
+        let stack = NSStackView(views: [noteTitle, empty])
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.edgeInsets = NSEdgeInsets(top: Space.xl, left: Space.lg, bottom: Space.xl, right: Space.lg)
+        view = stack
     }
-    .inspectorColumnWidth(min: 220, ideal: 260, max: 360)
+
+    func show(_ note: Note?) {
+        noteTitle.stringValue = note?.title ?? ""
+        noteTitle.isHidden = note == nil
+        empty.isHidden = note != nil
+    }
+}
+
+// In MainSplitViewController.viewDidLoad:
+// let inspector = NSSplitViewItem(inspectorWithViewController: inspectorController)
+// inspector.minimumThickness = 220
+// inspector.maximumThickness = 360
+// addSplitViewItem(inspector)
 ```
 
 ## Popover
@@ -62,35 +88,71 @@ Use for a few related choices tied to one control. It closes when people
 click outside or pick an item, and it keeps their changes. Only an explicit
 Cancel throws them away. It never warns, never holds a warning, and opens
 one at a time. A popover people want to keep open can detach into a panel
-(AppKit `NSPopover` with `detachableWindow`; SwiftUI has no detach).
+(`NSPopoverDelegate.detachableWindow(for:)`).
 
 ```swift
-Button("Due Date", systemImage: "calendar") { showDate = true }
-    .help("Set the due date")
-    .popover(isPresented: $showDate, arrowEdge: .bottom) {
-        DatePicker("Due Date", selection: $item.dueDate, displayedComponents: .date)
-            .datePickerStyle(.graphical)
-            .labelsHidden()
-            .padding()
+@MainActor
+func showDatePopover(from button: NSButton, date: Date, onChange: @escaping (Date) -> Void) {
+    let picker = NSDatePicker()
+    picker.datePickerStyle = .clockAndCalendar
+    picker.datePickerElements = .yearMonthDay
+    picker.dateValue = date
+    let controller = DatePopoverController(picker: picker, onChange: onChange)
+    let popover = NSPopover()
+    popover.behavior = .transient          // closes on a click outside
+    popover.contentViewController = controller
+    popover.show(relativeTo: button.bounds, of: button, preferredEdge: .maxY)
+}
+
+final class DatePopoverController: NSViewController {
+    private let picker: NSDatePicker
+    private let onChange: (Date) -> Void
+
+    init(picker: NSDatePicker, onChange: @escaping (Date) -> Void) {
+        self.picker = picker
+        self.onChange = onChange
+        super.init(nibName: nil, bundle: nil)
     }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    override func loadView() {
+        picker.target = self
+        picker.action = #selector(changed(_:))   // keeps each change, like the system
+        let stack = NSStackView(views: [picker])
+        stack.edgeInsets = NSEdgeInsets(top: Space.md, left: Space.md, bottom: Space.md, right: Space.md)
+        view = stack
+    }
+
+    @objc private func changed(_ sender: NSDatePicker) { onChange(sender.dateValue) }
+}
 ```
 
 ## Panel
 
 Use when people give input again and again and watch the result (find and
-replace, a color or font picker), or keep a tool open beside their work.
+replace, a colour or font picker), or keep a tool open beside their work.
 A panel floats over the app, hides when the app is not in front, has no
 minimize button, and stays out of the Window menu's list. Its title is a
 noun ("Inspector"), and its menu item says "Show Inspector", never "panel".
 
 ```swift
-// In the App body
-UtilityWindow("Inspector", id: "inspector") {
-    InspectorPanel()
+@MainActor
+func makeUtilityPanel(title: String, content: NSViewController) -> NSPanel {
+    let panel = NSPanel(contentViewController: content)
+    panel.styleMask = [.titled, .closable, .utilityWindow, .resizable]
+    panel.title = title
+    panel.isFloatingPanel = true
+    panel.hidesOnDeactivate = true
+    panel.isExcludedFromWindowsMenu = true
+    panel.isRestorable = false
+    panel.setFrameAutosaveName(title)
+    return panel
 }
 ```
 
-Prefer sliders, steppers, and pickers over typed values in a panel.
+Prefer sliders, steppers, and pop-up buttons over typed values in a panel.
 
 A Spotlight-style panel, a corner card, a countdown, or a HUD is a
 different kind: borderless, non-activating, it closes when it loses focus
@@ -101,29 +163,10 @@ panel".
 ## Sheet
 
 Use for one short task that must finish or cancel before going on: a few
-fields, one screen, no navigation inside. On macOS the toolbar placements
-put the buttons at the bottom, bind Return to the confirm button, and bind
-Escape to Cancel.
-
-```swift
-.sheet(isPresented: $renaming) {
-    Form {
-        TextField("Name", text: $draft)
-    }
-    .formStyle(.grouped)
-    .frame(width: 360)
-    .navigationTitle("Rename Project")
-    .toolbar {
-        ToolbarItem(placement: .cancellationAction) {
-            Button("Cancel") { renaming = false }
-        }
-        ToolbarItem(placement: .confirmationAction) {
-            Button("Rename") { project.name = draft; renaming = false }
-                .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
-        }
-    }
-}
-```
+fields, one screen, no navigation inside. Buttons sit at the bottom
+trailing edge, Return confirms, Escape cancels. The recipe is
+`NoteSheetController` in appkit-recipes.md, presented with
+`presentAsSheet`.
 
 - A Done button always comes with Cancel, or with Back in a multi-step
   sheet. Never show Cancel, Done, and Back together.
@@ -139,19 +182,33 @@ wants to be a window.
 
 Use for a long or self-contained task, or something people keep open next
 to the main window: an editor, a large preview. Each window remembers its
-frame.
+frame. One window controller per open object, kept by id so a second
+"Open" brings the same window forward.
 
 ```swift
-// In the App body
-WindowGroup("Item", for: PersistentIdentifier.self) { $id in
-    if let id { ItemEditor(id: id) }
-}
-.defaultSize(width: 640, height: 480)
+@MainActor
+final class NoteWindows {
+    private var open: [UUID: NSWindowController] = [:]
 
-// In a view
-@Environment(\.openWindow) private var openWindow
-Button("Open in New Window") { openWindow(value: item.persistentModelID) }
+    func show(_ note: Note, content: () -> NSViewController) {
+        if let existing = open[note.uuid] {
+            existing.showWindow(nil)
+            return
+        }
+        let window = NSWindow(contentViewController: content())
+        window.title = note.title
+        window.setContentSize(NSSize(width: 640, height: 480))
+        window.isRestorable = false
+        window.setFrameAutosaveName("Note \(note.uuid)")
+        let controller = NSWindowController(window: window)
+        open[note.uuid] = controller
+        controller.showWindow(nil)
+    }
+}
 ```
+
+Remove the controller from `open` in the window delegate's
+`windowWillClose(_:)`.
 
 ## Sidebar page or detail
 
@@ -163,18 +220,25 @@ sheet. Register it as a snapshot page in `AppDelegate.snapshotPages` so snapshot
 
 Use only for a rare action that destroys data and cannot be undone. For
 undoable actions, act at once and offer Undo. The title asks the question,
-the button repeats the verb, and the system adds Cancel.
+the button repeats the verb, and Cancel is there too.
 
 When people chose the action on purpose (Empty Trash from a menu), the
-confirm button gets no destructive role, so Return confirms what they asked
-for. Use `role: .destructive` only for a destructive button people did not
-ask for, such as "Don't Save" when closing an edited document. [HIG Buttons]
+confirm button is not marked destructive, so Return confirms what they
+asked for. Set `hasDestructiveAction` only on a destructive button people
+did not ask for, such as "Don't Save" when closing an edited document.
+[HIG Buttons]
 
 ```swift
-.confirmationDialog("Empty Trash?", isPresented: $confirmEmpty) {
-    Button("Empty Trash") { emptyTrash() }
-} message: {
-    Text("You can't undo this action.")
+@MainActor
+func confirmEmptyTrash(in window: NSWindow, emptyTrash: @escaping () -> Void) {
+    let alert = NSAlert()
+    alert.messageText = "Empty Trash?"
+    alert.informativeText = "You can\u{2019}t undo this action."
+    alert.addButton(withTitle: "Empty Trash")
+    alert.addButton(withTitle: "Cancel")
+    alert.beginSheetModal(for: window) { response in
+        if response == .alertFirstButtonReturn { emptyTrash() }
+    }
 }
 ```
 
@@ -188,16 +252,22 @@ The message, if any, says what to do.
 - The default button sits on the trailing side. Escape and Command-Period
   cancel. Avoid "OK" except for a purely informational alert.
 - An alert that repeats for a task people do often gets a "Do not show
-  again" checkbox: `.dialogSuppressionToggle(isSuppressed: $skip)`.
+  again" checkbox: `alert.showsSuppressionButton = true`, then read
+  `alert.suppressionButton?.state`.
 - The caution symbol only for a real risk of losing data, never for a
   routine overwrite or Empty Trash.
 
 ```swift
-.alert("Unable to Export", isPresented: $exportFailed) {
-    Button("Choose Another Folder") { chooseFolder() }
-    Button("Cancel", role: .cancel) {}
-} message: {
-    Text("The folder is read-only. Choose a folder you can write to.")
+@MainActor
+func showExportFailed(in window: NSWindow, chooseFolder: @escaping () -> Void) {
+    let alert = NSAlert()
+    alert.messageText = "Unable to Export"
+    alert.informativeText = "The folder is read-only. Choose a folder you can write to."
+    alert.addButton(withTitle: "Choose Another Folder")
+    alert.addButton(withTitle: "Cancel")
+    alert.beginSheetModal(for: window) { response in
+        if response == .alertFirstButtonReturn { chooseFolder() }
+    }
 }
 ```
 
@@ -207,13 +277,17 @@ Information that needs no action goes where it applies. Offline, show the
 cached content and a quiet label, the way Mail does.
 
 ```swift
-.safeAreaInset(edge: .bottom) {
-    if isOffline {
-        Label("Offline. Changes save when you reconnect.", systemImage: "wifi.slash")
-            .font(.callout)
-            .foregroundStyle(.secondary)
-            .padding(8)
-    }
+@MainActor
+func makeOfflineLabel() -> NSView {
+    let image = NSImageView(image: NSImage(systemSymbolName: "wifi.slash", accessibilityDescription: nil)!)
+    image.contentTintColor = .secondaryLabelColor
+    let text = NSTextField(labelWithString: "Offline. Changes save when you reconnect.")
+    text.font = .preferredFont(forTextStyle: .callout)
+    text.textColor = .secondaryLabelColor
+    let stack = NSStackView(views: [image, text])
+    stack.spacing = Space.xs
+    stack.edgeInsets = NSEdgeInsets(top: Space.sm, left: Space.sm, bottom: Space.sm, right: Space.sm)
+    return stack   // pin it to the bottom of the list's view; hide it when online
 }
 ```
 
@@ -223,11 +297,16 @@ Ask before closing only when people would lose what they typed. Offer to
 keep it.
 
 ```swift
-Button("Cancel") {
-    if draft.isEmpty { dismiss() } else { confirmDiscard = true }
-}
-.confirmationDialog("Discard this note?", isPresented: $confirmDiscard) {
-    Button("Discard", role: .destructive) { dismiss() }
-    Button("Keep Editing", role: .cancel) {}
+@MainActor
+func cancelEditing(draft: String, in window: NSWindow, dismiss: @escaping () -> Void) {
+    guard !draft.isEmpty else { dismiss(); return }
+    let alert = NSAlert()
+    alert.messageText = "Discard this note?"
+    let discard = alert.addButton(withTitle: "Discard")
+    discard.hasDestructiveAction = true
+    alert.addButton(withTitle: "Keep Editing")
+    alert.beginSheetModal(for: window) { response in
+        if response == .alertFirstButtonReturn { dismiss() }
+    }
 }
 ```

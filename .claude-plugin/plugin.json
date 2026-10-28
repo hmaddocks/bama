@@ -1,7 +1,7 @@
 {
   "name": "bama",
   "version": "1.0.0",
-  "description": "Build any Mac app: skills to research, clone, plan, scaffold, design, integrate, optimize, test, and ship native macOS apps with Swift and SwiftUI.",
+  "description": "Build any Mac app: skills to research, clone, plan, scaffold, design, integrate, optimize, test, and ship native macOS apps with Swift, AppKit, and Core Data, planned in OmniFocus and Bear.",
   "author": {
     "name": "Henry Maddocks",
     "url": "https://github.com/hmaddocks"
@@ -11,8 +11,8 @@
   "keywords": [
     "macos",
     "swift",
-    "swiftui",
-    "swiftdata",
+    "appkit",
+    "coredata",
     "liquid-glass",
     "computer-use",
     "clone",

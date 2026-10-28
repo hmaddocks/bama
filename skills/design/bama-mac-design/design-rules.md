@@ -149,7 +149,6 @@ snapshot or in the code. Sources are listed at the bottom.
 - WWDC25-219 Meet Liquid Glass: https://developer.apple.com/videos/play/wwdc2025/219/
 - WWDC25-356 Get to know the new design system: https://developer.apple.com/videos/play/wwdc2025/356/
 - WWDC25-310 Build an AppKit app with the new design: https://developer.apple.com/videos/play/wwdc2025/310/
-- WWDC25-310 Build an AppKit app with the new design: https://developer.apple.com/videos/play/wwdc2025/310/
 - WWDC26-269 What's new in SwiftUI: https://developer.apple.com/videos/play/wwdc2026/269/
 - WWDC26-250 Principles of great design: https://developer.apple.com/videos/play/wwdc2026/250/
 - WWDC26-292 Design intuitive search experiences: https://developer.apple.com/videos/play/wwdc2026/292/

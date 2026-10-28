@@ -69,7 +69,7 @@ lands there.
 
 ```swift
 final class FloatingPanel: NSPanel {
-    init(size: NSSize, content: some View) {
+    init(size: NSSize, content: NSViewController) {
         super.init(contentRect: NSRect(origin: .zero, size: size),
                    styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
                    backing: .buffered, defer: false)
@@ -80,9 +80,11 @@ final class FloatingPanel: NSPanel {
         isOpaque = false
         backgroundColor = .clear
         hasShadow = false                 // the glass draws its own shadow
-        let host = NSHostingView(rootView: content)
-        host.sizingOptions = []           // fixed frame, no resize jumps
-        contentView = host
+        let glass = NSGlassEffectView()
+        glass.cornerRadius = 16
+        glass.contentView = content.view
+        contentView = glass
+        setContentSize(size)              // fixed frame, no resize jumps
     }
     override var canBecomeKey: Bool { true }
     override func resignKey() { super.resignKey(); orderOut(nil) }
@@ -164,20 +166,21 @@ their own shortcuts from it. App Shortcuts (`AppShortcutsProvider`, ready-made
 phrases) are not supported on macOS, so skip them in a Mac-only app.
 [HIG App Shortcuts]
 
-App Intents need an Xcode build (XcodeGen project), which extracts the
-intent metadata. A plain `swift build` does not.
+App Intents need the Xcode build, which extracts the intent metadata. The
+skeleton's `build.sh` uses it, so intents work; add the `AppIntents`
+framework to the target in `project.yml`.
 
 ## CLI and Darwin pings
 
-For a CLI that owns plain files or its own SQLite (not a SwiftData store).
-For a SwiftData app, use the `bama-agent-cli` skill: the CLI sends commands to
-the running app instead. Here the CLI writes, then pings the app:
+For a CLI that owns plain files or its own SQLite (not the app's Core Data
+store). For the app's store, use the `bama-agent-cli` skill: the CLI sends
+commands to the running app instead. Here the CLI writes, then pings the app:
 
 ```swift
 notify_post("com.you.app.changed")                         // CLI side
 var token: Int32 = 0                                       // app side
 notify_register_dispatch("com.you.app.changed", &token, .main) { _ in
-    MainActor.assumeIsolated { AppModel.shared.reload() }
+    MainActor.assumeIsolated { reloadFromDisk() }        // your app's reload
 }
 ```
 

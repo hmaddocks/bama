@@ -17,8 +17,8 @@ Code for every row is in [recipes.md](recipes.md).
 | Hold-to-show (hold Option, press Tab) or key remapping | `CGEvent.tapCreate` event tap | Accessibility |
 | Watch keys without changing them (keystroke overlay) | Listen-only event tap | Input Monitoring (`CGRequestListenEventAccess`) |
 | List other apps' windows | `CGWindowListCopyWindowInfo` | None (titles need Screen Recording) |
-| Menu bar item | `MenuBarExtra` (SwiftUI) or `NSStatusItem` | None |
-| Live status in the menu bar (a timer, a sync) | `MenuBarExtra` with a changing label. Live Activities on a Mac only mirror a paired iPhone | None |
+| Menu bar item | `NSStatusItem` (bama-mac-design patterns.md, "Menu bar extra") | None |
+| Live status in the menu bar (a timer, a sync) | `NSStatusItem` whose button title changes. Live Activities on a Mac only mirror a paired iPhone | None |
 | Desktop and Notification Center widgets | WidgetKit extension target (Xcode build, like App Intents) | None |
 | Find the app's content in Spotlight | Core Spotlight `CSSearchableIndex` | None |
 | Preview the app's own file type in Finder (Space) | Quick Look preview extension | None |

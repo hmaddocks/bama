@@ -9,14 +9,14 @@
 ### See an app you like. Rebuild it as your own native Mac app.
 
 Agent skills that take a native macOS app from idea to your Dock.<br>
-Swift and SwiftUI. Local data. No Xcode GUI.
+Swift, AppKit, and Core Data. Local data. No Xcode GUI needed.
 
-A fork of [daveebbelaar/bama](https://github.com/daveebbelaar/bama), moving
-to AppKit and UIKit apps for Mac, iPhone and iPad, planned in OmniFocus and
-Bear. The skills still build SwiftUI Mac apps until that work lands.
+A fork of [daveebbelaar/bama](https://github.com/daveebbelaar/bama) for
+AppKit apps, planned in OmniFocus and Bear. iPhone and iPad apps with UIKit
+come next.
 
 [![macOS 26+](https://img.shields.io/badge/macOS-26%2B-000000?style=flat-square&logo=apple&logoColor=white)](#requirements)
-[![Swift 6.2](https://img.shields.io/badge/Swift-6.2-F05138?style=flat-square&logo=swift&logoColor=white)](#requirements)
+[![Swift 6](https://img.shields.io/badge/Swift-6-F05138?style=flat-square&logo=swift&logoColor=white)](#requirements)
 [![21 skills](https://img.shields.io/badge/skills-21-5E5CE6?style=flat-square)](#skills)
 [![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-D97757?style=flat-square&logo=claude&logoColor=white)](#install)
 [![Codex plugin](https://img.shields.io/badge/Codex-plugin-10A37F?style=flat-square)](#install)
@@ -145,7 +145,10 @@ bama/scripts/link-skills.sh       # links every skill into ~/.claude/skills and 
 ## Requirements
 
 - macOS 26 or later
-- Xcode 26 or later, for the Swift 6.2 toolchain (you never open it)
+- Xcode 26 or later (you never have to open it; the scripts use its toolchain
+  even when the Command Line Tools are selected)
+- XcodeGen: `brew install xcodegen`
+- OmniFocus and Bear, with their MCP servers connected, for the planning skills
 - An agent that supports skills: Claude Code, Codex, Cursor, Gemini CLI
 - For `bama-clone` on native apps: computer use (Claude Pro or Max)
 
@@ -159,9 +162,6 @@ bama/scripts/link-skills.sh       # links every skill into ~/.claude/skills and 
 - Skill format and writing rules follow Matt Pocock's
   [skills](https://github.com/mattpocock/skills) and his
   `writing-for-agents` skill.
-- Works well with [SwiftUI Pro](https://github.com/twostraws/SwiftUI-Agent-Skill)
-  by Paul Hudson and [SwiftUI Expert](https://github.com/AvdLee/SwiftUI-Agent-Skill)
-  by Antoine van der Lee.
 
 ## License
 

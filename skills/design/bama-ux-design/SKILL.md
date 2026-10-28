@@ -84,7 +84,7 @@ Go down this list and use the first one that fits. Lighter is better.
 - Ask before closing only when people would lose what they typed.
 - Information that needs no action goes inline, never in an alert.
 
-Details and SwiftUI code for each surface: [presentation.md](presentation.md).
+Details and AppKit code for each surface: [presentation.md](presentation.md).
 
 Check: the `UX:` block names the surface and the table row that picked it.
 
@@ -144,7 +144,7 @@ a tooltip.
 - Reduce Motion replaces slides and bounces with fades.
 - Every custom control has a label, a value, actions, and feedback.
 
-The audit steps and SwiftUI modifiers: [accessibility.md](accessibility.md).
+The audit steps and the AppKit calls that fix what it finds: [accessibility.md](accessibility.md).
 
 Check: you ran the flow keyboard-only and with VoiceOver, and the
 Accessibility Inspector audit shows no issues for the new views.

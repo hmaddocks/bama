@@ -53,9 +53,9 @@ Acceptance:
 - Every acceptance line starts with how it is checked: `[snap]` snapshot,
   `[unit]` unit test, `[self]` self-test, `[manual]` a person must try it.
   "Works well" is not checkable.
-- `[unit]` is only for logic in the `<App>Kit` library, which the tests
-  build without the app. Model and storage behavior (SwiftData models,
-  delete rules, saving) lives in the app target, so check it with
+- `[unit]` is only for logic in the `<App>Core` package, which the tests
+  build without the app. Model and storage behavior (Core Data
+  entities, delete rules, saving) lives in the app target, so check it with
   `[self]`.
 - `Screens:` links reference screenshots in `docs/screens/`, so
   `bama-improve-loop` knows what to compare. Without a reference app, name
