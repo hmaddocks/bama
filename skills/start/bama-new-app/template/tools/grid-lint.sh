@@ -1,26 +1,29 @@
 #!/bin/zsh
-# Flags spacing numbers off the 4 pt grid in AppKit layout code, and frames set by hand.
-# Usage: tools/grid-lint.sh [folder]      (default: the app target, __APP_NAME__/)
+# Flags spacing numbers off the 4 pt grid in AppKit and UIKit layout code, and frames set by hand.
+# Usage: tools/grid-lint.sh [folder...]   (default: the app targets, __APP_NAME__/ and __APP_NAME__iOS/)
 # Allowed numbers: 0, 1, 2, and multiples of 4. Better: a token (Space.lg).
 # DesignTokens.swift, where the tokens live, is skipped.
 # Silence one line with a reason: // grid: ok <why>
 set -euo pipefail
-dir=${1:-${0:A:h:h}/__APP_NAME__}
-find "$dir" -name '*.swift' -not -name 'DesignTokens.swift' -print0 | xargs -0 perl -ne '
+root=${0:A:h:h}
+if (( $# )); then
+  dirs=("$@")
+else
+  dirs=()
+  for d in "$root/__APP_NAME__" "$root/__APP_NAME__iOS"; do [[ -d "$d" ]] && dirs+=("$d"); done
+fi
+find "${dirs[@]}" -name '*.swift' -not -name 'DesignTokens.swift' -print0 | xargs -0 perl -ne '
   BEGIN { $count = 0 }
+  sub off { my $n = abs($_[0]); return !($n == 0 || $n == 1 || $n == 2 || ($n == int($n) && $n % 4 == 0)); }
   if (!/grid: ok/) {
     my @bad;
     my $line = $_;
-    while ($line =~ /(?:\b(?:constant|equalToConstant|greaterThanOrEqualToConstant|lessThanOrEqualToConstant)\s*:\s*|\b(?:spacing|columnSpacing|rowSpacing)\s*[:=]\s*)(-?\d+(?:\.\d+)?)\b/g) {
-      my $n = abs($1);
-      push @bad, $1 unless $n == 0 || $n == 1 || $n == 2 || ($n == int($n) && $n % 4 == 0);
+    while ($line =~ /(?:\b(?:constant|equalToConstant|greaterThanOrEqualToConstant|lessThanOrEqualToConstant)\s*:\s*|\b(?:spacing|columnSpacing|rowSpacing|interGroupSpacing|interItemSpacing)\s*[:=]\s*|\bsetCustomSpacing\(\s*)(-?\d+(?:\.\d+)?)\b/g) {
+      push @bad, $1 if off($1);
     }
-    if ($line =~ /NSEdgeInsets\(([^)]*)\)/) {
+    while ($line =~ /(?:NSEdgeInsets|UIEdgeInsets|NSDirectionalEdgeInsets)\(([^)]*)\)/g) {
       my $args = $1;
-      while ($args =~ /:\s*(-?\d+(?:\.\d+)?)\b/g) {
-        my $n = abs($1);
-        push @bad, $1 unless $n == 0 || $n == 1 || $n == 2 || ($n == int($n) && $n % 4 == 0);
-      }
+      while ($args =~ /:\s*(-?\d+(?:\.\d+)?)\b/g) { push @bad, $1 if off($1); }
     }
     push @bad, "frame set by hand" if $line =~ /setFrameOrigin\(|\bframe\.origin\s*=/;
     if (@bad) { $count++; my $l = $line; $l =~ s/^\s+//; print "$ARGV:$.: off grid (", join(", ", @bad), "): $l"; }

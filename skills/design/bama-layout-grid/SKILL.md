@@ -1,6 +1,6 @@
 ---
 name: bama-layout-grid
-description: Grid and alignment rules for an AppKit app, with a lint that fails on guessed spacing numbers in constraints, stack views, and insets. Use when building or reviewing a custom page, row, form, or sheet, after every build that touched layout, or when the user says something looks misaligned, crooked, cramped, or unevenly spaced.
+description: Grid and alignment rules for an AppKit or UIKit app, with a lint that fails on guessed spacing numbers in constraints, stack views, and insets. Use when building or reviewing a custom page, row, form, or sheet, after every build that touched layout, or when the user says something looks misaligned, crooked, cramped, or unevenly spaced.
 ---
 
 # Layout grid
@@ -9,7 +9,8 @@ Agents guess numbers. A guessed `constant: 13` looks almost right and
 makes the whole app feel slightly off. This skill replaces guessing with
 one scale and a lint that fails when a number is off it.
 
-The skeleton has both in place: `Space` in `<App>/DesignTokens.swift`, and
+The skeleton has both in place: `Space` in each target's
+`DesignTokens.swift` (the same scale on Mac and iOS), and
 `tools/grid-lint.sh`. For an app made before this skill, copy `Space` and
 `tools/grid-lint.sh` from the `bama-new-app` skill's template.
 
@@ -40,6 +41,20 @@ The skeleton has both in place: `Space` in `<App>/DesignTokens.swift`, and
 8. Long text truncates (`lineBreakMode`) with its full value in a tooltip.
    Nothing clips.
 
+### On iPhone and iPad
+
+The scale and rules 3, 6 and 7 hold. The rest changes for touch:
+
+- Margins come from the system: pin content to `layoutMarginsGuide`
+  (16 or 20 pt, by width) or `readableContentGuide` for text on iPad, not
+  to the edge plus `Space.margin`.
+- Lists are `UICollectionView` lists with `UIListContentConfiguration`.
+  They inset and align their rows themselves; leave those insets alone.
+- Rows of views: `UIStackView` with a `Space` spacing. Collection layouts
+  use `Space` for `interGroupSpacing` and `contentInsets`.
+- Tap targets are at least 44 by 44 pt, and sit 8 apart. Text grows with
+  Dynamic Type, so nothing has a fixed height.
+
 ## Check: lint the code
 
 Run it after every build that touched views:
@@ -50,13 +65,15 @@ tools/grid-lint.sh
 # FAIL grid-lint: 1 lines off the grid
 ```
 
-It reads every Swift file in `<App>/` except `DesignTokens.swift`, and
-flags numbers that are not 0, 1, 2, or a multiple of 4 in:
+It reads every Swift file in `<App>/` and `<App>iOS/` except
+`DesignTokens.swift`, and flags numbers that are not 0, 1, 2, or a
+multiple of 4 in:
 
 - `constant:`, `equalToConstant:`, `greaterThanOrEqualToConstant:`,
   `lessThanOrEqualToConstant:`
-- `spacing`, `columnSpacing`, `rowSpacing` (`=` or `:`)
-- `NSEdgeInsets(top:left:bottom:right:)` and `edgeInsets`
+- `spacing`, `columnSpacing`, `rowSpacing`, `interGroupSpacing`,
+  `interItemSpacing` (`=` or `:`), and `setCustomSpacing(_:after:)`
+- `NSEdgeInsets`, `UIEdgeInsets`, and `NSDirectionalEdgeInsets`
 - `setFrameOrigin` and `frame.origin`, which it always flags
 
 Fix each line with a `Space` token. A number that must stay (a sheet
@@ -80,4 +97,5 @@ margin, nothing clipped, no stray gap.
 | Blurry edges | a fractional constant | a whole number from `Space` |
 
 Done when `tools/grid-lint.sh` passes and the snapshots of every page you
-touched show one leading edge per column and the 20 pt margin.
+touched show one leading edge per column and the margin: 20 pt on the
+Mac, the system layout margins on iOS.

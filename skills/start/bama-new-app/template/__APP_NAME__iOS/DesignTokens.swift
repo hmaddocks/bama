@@ -1,7 +1,8 @@
 import UIKit
 
 /// The iOS app's design tokens: the same names and values as the Mac
-/// target's DesignTokens.swift, as UIColor. DESIGN.md says which to use when.
+/// target's DesignTokens.swift, as UIColor. Only Space.margin differs, for
+/// touch. DESIGN.md says which to use when.
 enum DesignTokens {
     // MARK: Colours
     // Add tokens here, each with a light and a dark value, and a comment
