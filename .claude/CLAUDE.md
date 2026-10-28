@@ -36,8 +36,26 @@ Follow Matt Pocock's `writing-for-agents` rules:
 
 ## Adding a skill
 
-1. Create `skills/<stage>/<name>/SKILL.md` and `agents/openai.yaml`.
+1. Create `skills/<stage>/bama-<name>/SKILL.md` and `agents/openai.yaml`.
+   Every skill except the router starts with `bama-`, so it cannot clash
+   with another skill pack.
 2. Add it to `plugin.json` `skills`, the README table, and the router
    (`skills/start/bama/SKILL.md`).
 3. Run `claude plugin validate . --strict`.
 4. Keep `version` in `plugin.json` at 1.0.0 until the first release. After that, bump it, so installed copies update.
+
+## Agent skills
+
+### Issue tracker
+
+OmniFocus project "BAMA App", with specs in Bear notes tagged #apps/bama.
+See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five triage tags, under the OmniFocus tag group "BAMA triage". See
+`docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context. See `docs/agents/domain.md`.
