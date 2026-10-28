@@ -31,7 +31,8 @@ Rules and reasons: [rules.md](rules.md).
 
 ## 1. List the commands
 
-Read the user stories (`docs/stories/`). Write each thing a person does as
+Read the milestone specs (Bear notes "<App> spec: <milestone>") and
+their tickets in OmniFocus. Write each thing a person does as
 a command, `<noun> <verb>`, and mark it:
 
 - **read**: `items list`, `items show`, `status`. Safe to run any time.
@@ -42,7 +43,7 @@ a command, `<noun> <verb>`, and mark it:
 Add `status` (is it running, what is open, counts) and `open <page>` (show
 a page in the window), so an agent can see and steer the app.
 
-Check: every M1 story has its commands, and each command is marked.
+Check: every user story in the first milestone's spec has its commands, and each command is marked.
 
 ## 2. Add the files
 

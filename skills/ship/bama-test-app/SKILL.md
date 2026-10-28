@@ -45,7 +45,7 @@ swift test --scratch-path ~/Library/Developer/<App>/test-build
   Friday Night Lights"). Add consistency rows for related phrases ("next
   week" and "next friday"), and a tested way to undo a parsed part.
 - **Table tests** for anything with many cases. Keep the table in
-  `docs/research/<topic>.md` too, and add a row there before changing
+  the Bear note "<App> research: <topic>" too, and add a row there before changing
   behavior. A date parser easily needs 100 rows.
 
 ## 2. Self-test

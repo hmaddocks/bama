@@ -55,7 +55,7 @@ binary in a real `.app` bundle. An agent can read and edit every file.
    `LSMinimumSystemVersion` to 15 in `Info.plist.in`, and skip Liquid Glass APIs.
 
 2. Pick the name (one UpperCamelCase word) and bundle id (reverse DNS). If
-   `docs/BRIEF.md` exists, use its name.
+   a Bear note "<AppName> brief" exists, use its name.
 
 3. Run the script with the parent folder. It copies the template, fills in
    the name and bundle id, runs `git init`, and commits. It keeps a folder
@@ -83,9 +83,9 @@ binary in a real `.app` bundle. An agent can read and edit every file.
    tools/snap.sh                                                    # sample data, light and dark PNGs
    ```
 
-6. If `docs/BRIEF.md` exists, rename `Item` to the brief's main type and the
+6. If a Bear note "<AppName> brief" exists, rename `Item` to the brief's main type and the
    sidebar pages to the brief's pages. Nothing else: features go through
-   `bama-improve-loop`, one story at a time. Build, snapshot, commit.
+   `bama-improve-loop`, one ticket at a time. Build, snapshot, commit.
 
 ## When to switch to an Xcode project
 

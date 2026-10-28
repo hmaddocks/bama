@@ -1,6 +1,6 @@
 ---
 name: bama-research
-description: Online research for a macOS app before building it, run as parallel researcher subagents, saved to docs/research/. Use when the user asks what to build, which features matter, how the best apps in a category work, how a macOS API or integration works, or wants a feature comparison.
+description: Online research for a macOS app before building it, run as parallel researcher subagents, saved as Bear notes. Use when the user asks what to build, which features matter, how the best apps in a category work, how a macOS API or integration works, or wants a feature comparison.
 argument-hint: "<app category or question>"
 ---
 
@@ -48,7 +48,8 @@ the 3 things that matter most for the decision. No intro, no summary.
 
 ## 3. Merge
 
-Write one file per question: `docs/research/<topic>.md`.
+Write one Bear note per question, "<App> research: <topic>", tagged
+#apps/<app>.
 
 ```markdown
 # <Topic>
@@ -90,8 +91,8 @@ reference app).
 Call the Skill tool with `bama-clone` if one app stands out as the reference
 and you can open it. If it is not installed, or computer use and a browser
 are not available, link its public help pages and screenshots in the
-research file instead. Then call the Skill tool with `bama-app-brief`.
+research note instead. Then call the Skill tool with `bama-app-brief`.
 
-Done when every track returned, the file has a likes and dislikes table
+Done when every track returned, each note has a likes and dislikes table
 for every app in the market list, a feature matrix, and a decision list,
 and every decision cites a `[V]` or a planned test.

@@ -3,7 +3,7 @@
 # Usage: new-app.sh <AppName> <bundle-id> [parent-folder]
 #   new-app.sh Tasks com.yourname.tasks ~/Developer
 # Creates <parent-folder>/<AppName>. If that folder exists, it must not have a
-# Package.swift yet; existing files (like docs/BRIEF.md) are kept.
+# Package.swift yet; existing files (like the agent docs from bama-app-brief) are kept.
 # AppName must be one word in UpperCamelCase (letters and digits only).
 set -euo pipefail
 name=${1:?usage: new-app.sh <AppName> <bundle-id> [parent-folder]}
@@ -12,7 +12,7 @@ parent=${3:-$PWD}
 [[ "$name" =~ ^[A-Z][A-Za-z0-9]*$ ]] || { echo "AppName must be UpperCamelCase letters and digits, like Tasks or DailyLog"; exit 1; }
 template=${0:A:h:h}/template
 dest="$parent/$name"
-# An existing folder is fine if it has no project yet (for example only docs/BRIEF.md).
+# An existing folder is fine if it has no project yet (for example only the agent docs).
 [[ ! -e "$dest/Package.swift" ]] || { echo "$dest already has a Package.swift"; exit 1; }
 
 mkdir -p "$dest"

@@ -81,7 +81,7 @@ Icon/AppIcon.icon/
 
 ## Steps
 
-1. Read `docs/BRIEF.md`. Write three icon concepts in one line each: the
+1. Read the Bear note "<App> brief". Write three icon concepts in one line each: the
    object, the background color, the layers. Pick one with the user, or
    pick the one that is easiest to recognize at 16 px.
 

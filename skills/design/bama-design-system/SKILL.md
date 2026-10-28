@@ -1,6 +1,6 @@
 ---
 name: bama-design-system
-description: Accent color and design system for a macOS app, from the app's accent and the accent picker in Settings to Swift tokens in code plus a design/DESIGN-SYSTEM.md that says which token to use when. Use when the user wants a brand or accent color, wants people to pick a color, when an app has more than a few screens, when screens drift apart or animations feel inconsistent, or when the user asks for themes, a style guide, or design tokens.
+description: Accent color and design system for a macOS app, from the app's accent and the accent picker in Settings to Swift tokens in code plus a DESIGN.md at the repo root that says which token to use when. Use when the user wants a brand or accent color, wants people to pick a color, when an app has more than a few screens, when screens drift apart or animations feel inconsistent, or when the user asks for themes, a style guide, or design tokens.
 ---
 
 # Design system
@@ -30,7 +30,7 @@ The template already has the base in `Sources/<App>/UI/`:
 
 ## 1. Pick the accent
 
-Read `## Look` in `docs/BRIEF.md`. With no color named, keep `system`: it
+Read `## Look` in the Bear note "<App> brief". With no color named, keep `system`: it
 follows the accent color the person set for their Mac.
 
 For a brand color, set `ThemeStore.brand` to a `Theme` with three shades:
@@ -81,7 +81,7 @@ Accent values live in `Theme.swift`. The rest get one file per group in
 Surfaces adapt to light and dark. Views read the accent through `.tint` or
 `Palette`, so a new choice in Settings redraws the whole app.
 
-## 4. Write design/DESIGN-SYSTEM.md
+## 4. Write DESIGN.md
 
 One section per file above. Each section says which token to use when, and
 the rules that go with it. Keep it under 100 lines. Rules that transfer to
@@ -123,7 +123,7 @@ better, never worse.
 ## 6. Point agents at it
 
 Add one line to the app's `AGENTS.md` (create the file if it is missing):
-"Design rules: `design/DESIGN-SYSTEM.md`. Use its tokens; never raw colors,
+"Design rules: `DESIGN.md`. Use its tokens; never raw colors,
 radii, or durations."
 
 Done when this finds no hits outside the token files:
@@ -133,5 +133,5 @@ grep -rnE 'cornerRadius: [0-9]{1,2}\b|duration: [0-9]|\.spring\(response|\.snapp
   | grep -v 'Path(roundedRect'
 ```
 
-(hex strings in data and comments are fine), and DESIGN-SYSTEM.md has a section
+(hex strings in data and comments are fine), and DESIGN.md has a section
 for every token file.

@@ -44,8 +44,7 @@ Every screen answers: Where am I? What can I do? Where can I go?
 
 ## Before you write views
 
-Write these four under `## Design plan` in `docs/BRIEF.md`, or in
-`docs/DESIGN.md` when the brief would pass one page:
+Write these four under `## Design plan` in the Bear note "<App> brief":
 
 1. **Archetype**: sidebar window, single-window document, menu bar extra, or
    quick-capture panel. Most personal apps are a sidebar window plus one

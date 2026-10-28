@@ -46,7 +46,7 @@ Use these words exactly, so proposals stay comparable:
 
 Change no code in this step.
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, `docs/adr/`, and `docs/FIXLOG.md`
+1. Read `AGENTS.md`, `CONTEXT.md`, `ARCHITECTURE.md`, and `docs/FIXLOG.md`
    where they exist.
 2. Find hot spots:
 
@@ -119,7 +119,7 @@ top recommendation only if it is `Strong`. Leave the rest in the file.
 ## 4. Record
 
 - Update `ARCHITECTURE.md`: targets, layers, dependency direction, seams.
-- Add an ADR in `docs/adr/` only when the decision is hard to reverse,
+- Add a decision to `## Decisions` in `CONTEXT.md` only when the decision is hard to reverse,
   surprising without context, and a real trade-off.
 - Add a `docs/FIXLOG.md` entry for any bug the refactor found. Every entry
   ends with a `Rule:` line.

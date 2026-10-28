@@ -10,14 +10,14 @@ A feature that works can still confuse people. This pass decides what
 things are called, how a person moves through the feature, where it opens,
 and what it says, before any code exists.
 
-Run it once per story that adds a screen, an action, or words. The output
-is a `UX:` block in the story in `docs/STORIES.md`, plus new terms in
-`docs/GLOSSARY.md`. To review a built screen, run the same steps against
+Run it once per ticket that adds a screen, an action, or words. The output
+is a `UX:` block in the ticket's OmniFocus note, plus new terms in the
+glossary in `CONTEXT.md`. To review a built screen, run the same steps against
 its snapshot and list what fails, most serious first.
 
 ## 0. Read
 
-Read `docs/BRIEF.md`, `docs/GLOSSARY.md` (create it if missing), the story,
+Read the Bear note "<App> brief", the glossary in `CONTEXT.md`, the ticket,
 and its reference screenshots.
 
 ## 1. Name it
@@ -162,5 +162,5 @@ UX:
 - Access: Return saves, Escape cancels; VoiceOver "New task title"
 ```
 
-Done when the story has a `UX:` block, every term it uses is in
-`docs/GLOSSARY.md`, and steps 1 to 7 pass on its snapshots.
+Done when the ticket has a `UX:` block, every term it uses is in the
+glossary in `CONTEXT.md`, and steps 1 to 7 pass on its snapshots.

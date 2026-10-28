@@ -25,7 +25,7 @@ modality.
 
 ## Voice
 
-Pick three words for the app's voice and keep them in `docs/GLOSSARY.md`
+Pick three words for the app's voice and keep them in `CONTEXT.md`
 under `## Voice`, for example "calm, direct, brief". Tone changes with the
 moment: plain and serious for errors, a little warmer for a finished goal.
 

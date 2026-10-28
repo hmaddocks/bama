@@ -1,21 +1,20 @@
 ---
 name: bama-clone
-description: Walk through any existing app (native Mac app with computer use, web app with a browser), screenshot every screen, menu, and dialog, write a screen index, and turn it into user stories. Use when the user wants to clone, rebuild, replace, or copy the design of an app, or says "screenshot every screen".
+description: Walk through any existing app (native Mac app with computer use, web app with a browser), screenshot every screen, menu, and dialog, write a screen index, for the brief and the milestone specs. Use when the user wants to clone, rebuild, replace, or copy the design of an app, or says "screenshot every screen".
 argument-hint: "<app name as shown in the menu bar, or a URL>"
 ---
 
 # Clone
 
-Output: a folder of screenshots, one index that describes everything the
-app shows, and a backlog built from it.
+Output: a folder of screenshots in the app's repo, and a Bear note,
+"<App>: screens", that describes everything the app shows.
 
 ```text
 docs/screens/
-  INDEX.md
   01-inbox.png
   02-today.png
   ...
-docs/STORIES.md      (from the user-stories skill)
+Bear: "<App>: screens"   the index, tagged #apps/<app>
 ```
 
 ## 1. Pick the tool
@@ -81,9 +80,10 @@ exhaustive when every sidebar item, menu, and settings pane has a file.
 - Note any change in the user's data during the walk, even if you are not
   sure you caused it, and tell them.
 
-## 5. Write docs/screens/INDEX.md
+## 5. Write the screen index
 
-One section per screenshot:
+Write the Bear note "<App>: screens", tagged #apps/<app>, with one
+section per screenshot:
 
 ```markdown
 ## 03-upcoming.png
@@ -107,10 +107,11 @@ Describe structure and behavior. Take no text, logo, or icon from the app:
 rebuilding for personal use is fine, copying a brand is not. Keep the PNGs
 out of public repos (add `docs/screens/*.png` to `.gitignore`).
 
-## 6. Turn it into stories
+## 6. Hand off
 
-Call the Skill tool with `bama-user-stories`. Every screen in the index ends up
-linked from at least one story, or listed under `## Dropped`.
+Call the Skill tool with `bama-app-brief`. Later, each milestone's spec
+and tickets link the screens they cover, so `bama-improve-loop` knows
+what to compare.
 
-Done when INDEX.md has a section per PNG, the three maps exist, and
-`docs/STORIES.md` covers every screen.
+Done when the screen index note has a section per PNG and the three maps
+exist.
