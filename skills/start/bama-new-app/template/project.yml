@@ -1,0 +1,39 @@
+# The Xcode project is generated from this file and not committed.
+# build.sh runs `xcodegen generate` when this file changes.
+name: __APP_NAME__
+options:
+  deploymentTarget:
+    macOS: "26.0"
+packages:
+  __APP_NAME__Core:
+    path: __APP_NAME__Core
+targets:
+  __APP_NAME__:
+    type: application
+    platform: macOS
+    sources:
+      - path: __APP_NAME__
+      # Xcode 26 compiles an Icon Composer file into Assets.car and AppIcon.icns.
+      - path: Icon/AppIcon.icon
+    dependencies:
+      - package: __APP_NAME__Core
+    info:
+      path: __APP_NAME__/Info.plist
+      properties:
+        CFBundleDisplayName: __APP_NAME__
+        CFBundleShortVersionString: "0.1"
+        CFBundleVersion: "1"
+        CFBundleIconName: AppIcon
+        LSApplicationCategoryType: public.app-category.productivity
+        NSPrincipalClass: NSApplication
+        NSMainNibFile: MainMenu
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: __BUNDLE_ID__
+        SWIFT_VERSION: "6.0"
+        MACOSX_DEPLOYMENT_TARGET: "26.0"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # build.sh signs the installed copy; xcodebuild signs to run locally.
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        ENABLE_HARDENED_RUNTIME: NO

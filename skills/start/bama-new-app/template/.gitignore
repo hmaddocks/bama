@@ -1,7 +1,8 @@
+# Generated from project.yml by build.sh (xcodegen).
+*.xcodeproj/
 .build/
 .swiftpm/
 DerivedData/
-*.xcodeproj/
 xcuserdata/
 .DS_Store
 .env*

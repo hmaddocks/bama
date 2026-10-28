@@ -1,9 +1,9 @@
 #!/bin/zsh
-# Creates a new macOS app from the template next to this script.
+# Creates a new AppKit app from the template next to this script.
 # Usage: new-app.sh <AppName> <bundle-id> [parent-folder]
 #   new-app.sh Tasks com.yourname.tasks ~/Developer
 # Creates <parent-folder>/<AppName>. If that folder exists, it must not have a
-# Package.swift yet; existing files (like the agent docs from bama-app-brief) are kept.
+# project.yml yet; existing files (like the agent docs from bama-app-brief) are kept.
 # AppName must be one word in UpperCamelCase (letters and digits only).
 set -euo pipefail
 name=${1:?usage: new-app.sh <AppName> <bundle-id> [parent-folder]}
@@ -13,14 +13,20 @@ parent=${3:-$PWD}
 template=${0:A:h:h}/template
 dest="$parent/$name"
 # An existing folder is fine if it has no project yet (for example only the agent docs).
-[[ ! -e "$dest/Package.swift" ]] || { echo "$dest already has a Package.swift"; exit 1; }
+[[ ! -e "$dest/project.yml" ]] || { echo "$dest already has a project.yml"; exit 1; }
+
+# build.sh needs xcodegen and a full Xcode (xcodebuild, momc, Swift macros).
+command -v xcodegen >/dev/null || { echo "xcodegen is missing. Install it with: brew install xcodegen"; exit 1; }
+xcode=$(xcode-select -p 2>/dev/null || true)
+[[ "$xcode" == */Xcode*.app/Contents/Developer || -d /Applications/Xcode.app ]] || { echo "Xcode is missing. Install it from the App Store; the Command Line Tools are not enough."; exit 1; }
 
 mkdir -p "$dest"
 # rsync, not cp -n: macOS cp -n exits 1 whenever it skips a file that exists.
 rsync -a --ignore-existing "$template/" "$dest/"
-mv "$dest/Sources/__APP_NAME__" "$dest/Sources/$name"
-mv "$dest/Sources/__APP_NAME__Kit" "$dest/Sources/${name}Kit"
-mv "$dest/Tests/__APP_NAME__KitTests" "$dest/Tests/${name}KitTests"
+# Rename every file and folder with __APP_NAME__ in its name, deepest first.
+find "$dest" -depth -name '*__APP_NAME__*' | while read -r found; do
+  mv "$found" "${found:h}/${${found:t}//__APP_NAME__/$name}"
+done
 # Replace the placeholders in every text file.
 tag="apps/${name:l}"
 grep -rlI "__APP_NAME__\|__BUNDLE_ID__\|__BEAR_TAG__" "$dest" | while read -r f; do
@@ -32,11 +38,11 @@ done
 of_setup=${0:A:h:h:h}/bama-app-brief/scripts/omnifocus-setup.sh
 [[ -e "$dest/tools/omnifocus-setup.sh" || ! -f "$of_setup" ]] || cp "$of_setup" "$dest/tools/omnifocus-setup.sh"
 [[ -f "$dest/tools/omnifocus-setup.sh" ]] && chmod +x "$dest/tools/omnifocus-setup.sh"
-chmod +x "$dest/build.sh" "$dest/tools/make_icon.sh" "$dest/tools/icon_review.sh" "$dest/tools/grid-lint.sh" "$dest/tools/check-layout.swift" "$dest/tools/snap.sh" "$dest/tools/selftest.sh"
+chmod +x "$dest/build.sh" "$dest/bin/test" "$dest"/tools/*.sh
 
 cd "$dest"
 [[ -d .git ]] || git init -q
 git add -A
-git commit -qm "Create $name from the macOS app template"
+git commit -qm "Create $name from the AppKit app template"
 echo "created $dest"
 echo "next: cd \"$dest\" && ./build.sh --open"

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="25098" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="25098"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
+            <connections>
+                <outlet property="delegate" destination="AppDel-1" id="app-delegate-outlet"/>
+                <outlet property="mainMenu" destination="MainMenu-1" id="app-mainmenu-outlet"/>
+            </connections>
+        </customObject>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customObject id="AppDel-1" userLabel="App Delegate" customClass="AppDelegate">
+            <connections>
+                <outlet property="window" destination="Window-1" id="wnd-outlet"/>
+            </connections>
+        </customObject>
+        <menu title="Main Menu" systemMenu="main" id="MainMenu-1">
+            <items>
+                <menuItem title="__APP_NAME__" id="AppMenu-1">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="__APP_NAME__" systemMenu="apple" id="AppMenu-2">
+                        <items>
+                            <menuItem title="About __APP_NAME__" id="AppMenu-About">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="orderFrontStandardAboutPanel:" target="-1" id="AppMenu-About-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="AppMenu-Sep1"/>
+                            <menuItem title="Services" id="AppMenu-Services">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Services" systemMenu="services" id="AppMenu-Services-m"/>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="AppMenu-Sep2"/>
+                            <menuItem title="Hide __APP_NAME__" keyEquivalent="h" id="AppMenu-Hide">
+                                <connections>
+                                    <action selector="hide:" target="-1" id="AppMenu-Hide-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Hide Others" keyEquivalent="h" id="AppMenu-HideOthers">
+                                <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                <connections>
+                                    <action selector="hideOtherApplications:" target="-1" id="AppMenu-HideOthers-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Show All" id="AppMenu-ShowAll">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="unhideAllApplications:" target="-1" id="AppMenu-ShowAll-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="AppMenu-Sep3"/>
+                            <menuItem title="Quit __APP_NAME__" keyEquivalent="q" id="AppMenu-Quit">
+                                <connections>
+                                    <action selector="terminate:" target="-1" id="AppMenu-Quit-a"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <menuItem title="File" id="FileMenu-1">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="File" id="FileMenu-2">
+                        <items>
+                            <menuItem title="Close" keyEquivalent="w" id="FileMenu-Close">
+                                <connections>
+                                    <action selector="performClose:" target="-1" id="FileMenu-Close-a"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <menuItem title="Edit" id="EditMenu-1">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Edit" id="EditMenu-2">
+                        <items>
+                            <menuItem title="Undo" keyEquivalent="z" id="EditMenu-Undo">
+                                <connections>
+                                    <action selector="undo:" target="-1" id="EditMenu-Undo-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Redo" keyEquivalent="Z" id="EditMenu-Redo">
+                                <connections>
+                                    <action selector="redo:" target="-1" id="EditMenu-Redo-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="EditMenu-Sep1"/>
+                            <menuItem title="Cut" keyEquivalent="x" id="EditMenu-Cut">
+                                <connections>
+                                    <action selector="cut:" target="-1" id="EditMenu-Cut-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Copy" keyEquivalent="c" id="EditMenu-Copy">
+                                <connections>
+                                    <action selector="copy:" target="-1" id="EditMenu-Copy-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Paste" keyEquivalent="v" id="EditMenu-Paste">
+                                <connections>
+                                    <action selector="paste:" target="-1" id="EditMenu-Paste-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Delete" id="EditMenu-Delete">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="delete:" target="-1" id="EditMenu-Delete-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Select All" keyEquivalent="a" id="EditMenu-SelectAll">
+                                <connections>
+                                    <action selector="selectAll:" target="-1" id="EditMenu-SelectAll-a"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <menuItem title="View" id="ViewMenu-1">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="View" id="ViewMenu-2">
+                        <items>
+                            <menuItem title="Enter Full Screen" keyEquivalent="f" id="ViewMenu-FullScreen">
+                                <modifierMask key="keyEquivalentModifierMask" control="YES" command="YES"/>
+                                <connections>
+                                    <action selector="toggleFullScreen:" target="-1" id="ViewMenu-FullScreen-a"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <menuItem title="Window" id="WindowMenu-1">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Window" systemMenu="window" id="WindowMenu-2">
+                        <items>
+                            <menuItem title="Minimize" keyEquivalent="m" id="WindowMenu-Minimize">
+                                <connections>
+                                    <action selector="performMiniaturize:" target="-1" id="WindowMenu-Minimize-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem title="Zoom" id="WindowMenu-Zoom">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="performZoom:" target="-1" id="WindowMenu-Zoom-a"/>
+                                </connections>
+                            </menuItem>
+                            <menuItem isSeparatorItem="YES" id="WindowMenu-Sep1"/>
+                            <menuItem title="Bring All to Front" id="WindowMenu-Front">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="arrangeInFront:" target="-1" id="WindowMenu-Front-a"/>
+                                </connections>
+                            </menuItem>
+                        </items>
+                    </menu>
+                </menuItem>
+                <menuItem title="Help" id="HelpMenu-1">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <menu key="submenu" title="Help" systemMenu="help" id="HelpMenu-2"/>
+                </menuItem>
+            </items>
+            <point key="canvasLocation" x="139" y="154"/>
+        </menu>
+        <window title="__APP_NAME__" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="Window-1">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" topStrut="YES"/>
+            <rect key="contentRect" x="196" y="240" width="900" height="600"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1728" height="1084"/>
+            <view key="contentView" id="Window-1-content">
+                <rect key="frame" x="0.0" y="0.0" width="900" height="600"/>
+                <autoresizingMask key="autoresizingMask"/>
+            </view>
+        </window>
+    </objects>
+</document>

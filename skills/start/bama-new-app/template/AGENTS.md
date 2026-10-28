@@ -1,55 +1,80 @@
 # __APP_NAME__
 
-A native macOS app in SwiftUI. It runs on this Mac only, with a local
-SwiftData database and no server.
+A native macOS app in Swift and AppKit. It runs on this Mac only, with a
+local Core Data store and no server.
 
 What the app is for: the Bear note "__APP_NAME__ brief". Terms and
 decisions: `CONTEXT.md`. Check its glossary before naming anything in code
 or docs.
 
+## Architecture
+
+- **AppKit**, not SwiftUI. SwiftUI only for a contained piece that needs it
+  (Swift Charts in an `NSHostingView`), with the reason in `CONTEXT.md`.
+- **`__APP_NAME__Core`**, a local Swift package: models, storage, and logic.
+  No AppKit or UIKit types may appear in it. Tests live there.
+- **Core Data**. Entities are in
+  `__APP_NAME__Core/Sources/__APP_NAME__Core/Persistence/__APP_NAME__Core.xcdatamodeld`.
+  After a change that is not a lightweight migration, add a model version.
+- `__APP_NAME__/MainMenu.xib` holds the menu bar and the main window only.
+  View controllers and layout are in Swift.
+- `main.swift` calls `NSApplicationMain`, and `AppDelegate` is
+  `@objc(AppDelegate)`. The comment in `AppDelegate.swift` says why; keep both.
+- **Platform defaults** for UI behaviour: what AppKit does out of the box
+  and what the Human Interface Guidelines describe. When a ticket departs
+  from the default, ask before building it: name the default and what the
+  departure costs.
+
 ## Layout
 
-- `Sources/__APP_NAME__/` the app. `App.swift` has the window, menus, and the database location.
-- `Sources/__APP_NAME__Kit/` rules and data logic with no SwiftUI. Tests in `Tests/__APP_NAME__KitTests/`.
-- `Package.swift` a Swift package. There is no Xcode project.
-- `build.sh` builds, signs, and installs `~/Applications/__APP_NAME__.app`.
-- `Icon/AppIcon.icon` the app icon, an Icon Composer file (JSON plus SVG layers). `build.sh` compiles it with `tools/make_icon.sh`; `tools/icon_review.sh` renders every look into one PNG.
-- `docs/agents/` how to use the issue tracker (OmniFocus and Bear). `docs/screens/` reference screenshots. `docs/FIXLOG.md` and `docs/architecture-review-<date>.md` when they exist.
+- `__APP_NAME__/` the app target: `AppDelegate.swift`, `MainWindowController.swift`,
+  `MainMenu.xib`, `DesignTokens.swift`.
+- `__APP_NAME__Core/` the package: `Sources/`, `Tests/`, and the plugin that
+  compiles the Core Data model for `swift test`.
+- `project.yml` the Xcode project's source. `__APP_NAME__.xcodeproj` is
+  generated from it and not committed.
+- `Icon/AppIcon.icon` the app icon, an Icon Composer file. Xcode compiles
+  it. `tools/icon_review.sh` renders every look into one PNG.
+- `DESIGN.md` the design tokens and when to use each.
+- `docs/agents/` how to use the issue tracker (OmniFocus and Bear).
+  `docs/screens/` reference screenshots. `docs/FIXLOG.md` and
+  `docs/architecture-review-<date>.md` when they exist.
 
 ## Build and check
 
-- Build and install: `./build.sh`. Add `--open` to restart the app with the new build. The build shows warnings; fix them.
-- Unit tests: `swift test --scratch-path ~/Library/Developer/__APP_NAME__/test-build`.
-- Self-test (the app's real functions on a /tmp store): `tools/selftest.sh`. Exit 0 when every check passes. Add a check for every story with logic in `SelfTest.swift`.
-- After every UI change, take snapshots with sample data and look at them: `tools/snap.sh`.
-  It writes `/tmp/__APP_NAME__-shots/<page>-light.png` and `-dark.png` for every sidebar page, and `settings-<tab>-light.png` and `-dark.png` for every Settings tab, then quits. `APP_SNAPSHOT_PAGES=all,settings tools/snap.sh` limits the pages.
-  For a panel, sheet, or popover, add a capture to `Snapshot.swift` like the Settings loop.
-- Snapshots, seed data, and the self-test refuse to run without `APP_STORE` in /tmp.
-- Never test against the real database in `~/Library/Application Support/__APP_NAME__/`.
-- Then check the grid: `tools/grid-lint.sh` and `swift tools/check-layout.swift /tmp/__APP_NAME__-shots/*-layout.json`. Both print PASS.
-- A change is done when the build has no errors, the grid checks pass, and you looked at the light and dark snapshots.
+- Build and install: `./build.sh`. It regenerates the Xcode project when
+  `project.yml` changed, builds with Xcode's toolchain, and installs
+  `~/Applications/__APP_NAME__.app`. `--open` restarts the app with the new
+  build; `--debug` builds Debug, which uses `__APP_NAME__-dev.sqlite`. Fix
+  every warning it prints.
+- Core tests: `bin/test` (pins a full Xcode; `bin/test --filter Store`).
+  Logic tests use plain values or protocol-based fakes. In-memory Core Data
+  only for store-level tests.
+- Self-test (the app's real functions on a /tmp store): `tools/selftest.sh`.
+  Exit 0 when every check passes. Add a check for every ticket whose model
+  or storage behavior a unit test cannot reach.
+- Snapshots: `tools/snap.sh` writes `/tmp/__APP_NAME__-shots/<page>-light.png`
+  and `-dark.png` for every registered page, then quits.
+  `APP_SNAPSHOT_PAGES=main tools/snap.sh` limits the pages. Look at them.
+- Snapshots, seed data, and the self-test refuse to run without `APP_STORE`
+  in /tmp. Never test against the real store in
+  `~/Library/Application Support/__APP_NAME__/`.
+- Spacing: `tools/grid-lint.sh` prints PASS.
+- A change is done when the build has no errors or warnings, `bin/test`
+  and the grid lint pass, and you looked at the light and dark snapshots.
 
 ## Design rules
 
-- Use Apple's controls and system styles. Only the accent color is custom: `UI/Theme.swift` (`ThemeStore.defaultID`). People change it, and light or dark mode, in Settings > Appearance.
-- Views use `.tint`, `Palette.accent`, `Palette.accentText` (accent-colored text), and `Palette.onAccent` (text on an accent fill). Never hard-code colors, radii, or durations in views.
-- Compare accents: add `APP_ACCENT=<id>` to the snapshot command.
-- Spacing comes from `Space` in `UI/Grid.swift`, on a 4 pt grid. Mark custom pages and cards with `.gridArea` and `.gridProbe`.
-- Windows open calm: `.noInitialFocus()` on every window and sheet (no focus ring or selected text on open), `.fitsContent()` on sheets and Settings tabs (no scroll bar with nothing to scroll). System scroll bars. Both in `UI/WindowBehavior.swift`.
-- Settings: one tab per topic in `SettingsView.swift`, one grouped Form per tab. Add a case to `SettingsTab` for a new tab.
-- Window chrome (title bar, toolbar, sidebar, menus, sheets) stays system. Buttons use system styles, like `.borderedProminent`.
-- Colors: `.primary`, `.secondary`, `.tint`, and system colors. Never fixed grays or white for text.
-- Every action has a menu bar item and a keyboard shortcut.
-- `Label` for icon and text pairs. SF Symbols for icons.
-- `ContentUnavailableView` for empty states.
-- Liquid Glass belongs to floating controls only, never to content.
-
-## Skills
-
-The bama plugin has a skill for each step: `bama-mac-design` (design rules),
-`bama-design-system` (accent and tokens), `bama-layout-grid`, `bama-ux-design`,
-`bama-swift`, `bama-os-integrations`, `bama-performance`, `bama-build-and-verify`,
-`bama-test-app`, `bama-app-icon`, `bama-user-stories`, and `bama-improve-loop`. Use them.
+- AppKit controls and system styles. Window chrome (title bar, toolbar,
+  sidebar, menus, sheets) stays system.
+- Colours and fonts come from `DesignTokens.swift` or system colours
+  (`.labelColor`, `.secondaryLabelColor`, `.controlAccentColor`). Never a
+  fixed grey or white for text. `DESIGN.md` says which token to use when.
+- Spacing comes from `Space` in `DesignTokens.swift`, on a 4 pt grid.
+- Every action has a menu item, and a keyboard shortcut where it is used
+  often. Menu items validate (`NSMenuItemValidation`).
+- Edits go through the store's view context, so Edit > Undo works.
+- SF Symbols for icons.
 
 ## Git
 

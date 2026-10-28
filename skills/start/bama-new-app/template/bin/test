@@ -1,0 +1,23 @@
+#!/bin/sh
+# Runs the __APP_NAME__Core tests with a full Xcode's toolchain.
+#
+# Swift Testing's macros and momc ship with Xcode, not the Command Line
+# Tools. Under the Command Line Tools the build fails with "plugin for module
+# 'TestingMacros' not found". Pinning DEVELOPER_DIR makes `swift test` work
+# whatever `xcode-select` says. Extra arguments pass through:
+#   bin/test --filter Store
+set -eu
+if [ -z "${DEVELOPER_DIR:-}" ]; then
+    selected="$(xcode-select -p 2>/dev/null || true)"
+    case "$selected" in
+        */Xcode*.app/Contents/Developer) DEVELOPER_DIR="$selected" ;;
+        *) DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer" ;;
+    esac
+fi
+if [ ! -d "$DEVELOPER_DIR" ]; then
+    echo "error: no Xcode at $DEVELOPER_DIR. Install Xcode or set DEVELOPER_DIR." >&2
+    exit 1
+fi
+export DEVELOPER_DIR
+cd "$(dirname "$0")/../__APP_NAME__Core"
+exec swift test --scratch-path "$HOME/Library/Developer/__APP_NAME__/core-tests" "$@"
