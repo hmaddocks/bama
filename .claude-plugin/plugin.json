@@ -1,7 +1,7 @@
 {
   "name": "bama",
   "version": "1.0.0",
-  "description": "Build any Mac app: skills to research, clone, plan, scaffold, design, integrate, optimize, test, and ship native macOS apps with Swift, AppKit, and Core Data, planned in OmniFocus and Bear.",
+  "description": "Build any Mac app: skills to research, clone, plan, scaffold, design, integrate, optimize, test, and ship native Mac, iPhone and iPad apps with Swift, AppKit, UIKit, and Core Data, planned in OmniFocus and Bear.",
   "author": {
     "name": "Henry Maddocks",
     "url": "https://github.com/hmaddocks"

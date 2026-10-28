@@ -1,10 +1,14 @@
 ---
 name: bama
-description: Build any Mac app. Start here to pick the next skill for a native macOS app.
+description: Build any Mac app, with iPhone and iPad too. Start here to pick the next skill for a native Mac, iPhone, or iPad app.
 disable-model-invocation: true
 ---
 
 # Build any Mac app
+
+An app is for the Mac (AppKit), iPhone and iPad (UIKit), or both. The
+brief's `## Platforms` says which; the skills below cover both unless a
+row names one.
 
 Find where the user is on the path below, then call the Skill tool with the
 skill for that step. One skill per call.
@@ -55,7 +59,9 @@ which.
 | The user wants to | Skill |
 | --- | --- |
 | Start a new project | `bama-new-app` |
-| Write or fix Swift, AppKit, or Core Data code | `bama-swift` |
+| Write or fix Swift, AppKit, UIKit, or Core Data code | `bama-swift` |
+| Add iPhone and iPad to a Mac app | `bama-new-app` (add-ios.sh) |
+| Share data between the Mac and iOS apps with iCloud | `bama-swift` (icloud-sync.md) |
 | Hook into macOS: hotkeys, menu bar, windows, screen capture, Shortcuts | `bama-os-integrations` |
 | Make it fast: hangs, stutter, GPU, video, memory | `bama-performance` |
 | Let Claude Code, Codex, or scripts drive the app: a CLI, an MCP server | `bama-agent-cli` |

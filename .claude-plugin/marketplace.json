@@ -4,12 +4,12 @@
     "name": "Henry Maddocks",
     "url": "https://github.com/hmaddocks"
   },
-  "description": "Build any Mac app. Agent skills for native macOS apps with Swift, AppKit, and Core Data, planned in OmniFocus and Bear.",
+  "description": "Build any Mac app. Agent skills for native Mac, iPhone and iPad apps with Swift, AppKit, UIKit, and Core Data, planned in OmniFocus and Bear.",
   "plugins": [
     {
       "name": "bama",
       "source": "./",
-      "description": "Build any Mac app: skills to research, clone, plan, scaffold, design, integrate, optimize, test, and ship native macOS apps with Swift, AppKit, and Core Data, planned in OmniFocus and Bear.",
+      "description": "Build any Mac app: skills to research, clone, plan, scaffold, design, integrate, optimize, test, and ship native Mac, iPhone and iPad apps with Swift, AppKit, UIKit, and Core Data, planned in OmniFocus and Bear.",
       "category": "development",
       "keywords": [
         "macos",

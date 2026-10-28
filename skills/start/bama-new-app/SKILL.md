@@ -79,7 +79,7 @@ uikit-recipes.md).
 
 2. Pick the name (one UpperCamelCase word), bundle id (reverse DNS), and
    platforms: `mac`, `ios` (iPhone and iPad), or `both`. If a Bear note
-   "<AppName> brief" exists, use its name and its `Platforms:` line.
+   "<AppName> brief" exists, use its name and its `## Platforms` value.
    Without one, the platform is `mac`.
 
 3. Run the script with the parent folder. It copies the skeleton, renames
