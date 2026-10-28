@@ -10,14 +10,36 @@ Find where the user is on the path below, then call the Skill tool with the
 skill for that step. One skill per call.
 
 ```text
-idea -> bama-research -> bama-clone (optional) -> bama-app-brief -> bama-user-stories -> bama-new-app
-     -> bama-mac-design + bama-design-system + bama-app-icon -> bama-improve-loop (ux, code, design, verify, commit) -> repeat
+idea -> bama-research -> bama-clone (optional) -> bama-app-brief -> bama-new-app
+     -> bama-mac-design + bama-design-system + bama-app-icon
+     -> per milestone: bama-feature-spec -> bama-user-stories -> bama-improve-loop
 ```
 
-Pick the app's name first (bama-app-brief, step 1) and create
-`<parent>/<AppName>/docs/` before research, so every skill writes into the
-same folder. Design comes right after the scaffold: tokens from the first
-view, and the real icon in every snapshot.
+Pick the app's name first (bama-app-brief, step 1), so the Bear notes
+(`#apps/<appname>`), the OmniFocus project ("<AppName> App"), and the
+folder all share it. Design comes right after the scaffold: tokens from
+the first view, and the real icon in every snapshot.
+
+## Find the step
+
+With the app's name, look in this order. The first missing piece is the
+step.
+
+1. Bear: the note "<AppName> brief". Missing: `bama-app-brief`.
+2. The app's folder has no `Package.swift`: `bama-new-app`.
+3. OmniFocus, project "<AppName> App": the first incomplete milestone
+   action.
+   - Its note has no "Spec:" line: `bama-feature-spec`.
+   - It has a spec and no ticket sub-actions: `bama-user-stories`.
+   - It has open ready-for-agent tickets: `bama-improve-loop`.
+   - Only ready-for-human tickets are open: tell the user which ones
+     need them.
+
+Report progress per milestone: tickets resolved and open for the current
+one, and which milestones are left.
+
+This needs the OmniFocus and Bear MCP servers. If either is missing, say
+which.
 
 ## Plan
 
@@ -25,7 +47,8 @@ view, and the real icon in every snapshot.
 | --- | --- |
 | A vague idea, or asks "what should I build" | `bama-research`, then `bama-app-brief` |
 | An app they want to replace or rebuild | `bama-clone` |
-| A brief or a screen index, no backlog | `bama-user-stories` |
+| A brief, and a milestone with no spec | `bama-feature-spec` |
+| A milestone spec, no tickets | `bama-user-stories` |
 
 ## Build
 
@@ -44,9 +67,8 @@ view, and the real icon in every snapshot.
 | --- | --- |
 | Decide how a feature works and what it says: names, flow, modals, accessibility | `bama-ux-design` |
 | Make it look and feel like a Mac app | `bama-mac-design` |
-| An accent or brand color, a color picker, tokens | `bama-design-system` |
 | The look of an app they name, or screenshots of one | `bama-design-from-app` |
-| One set of colors, radii, motion, and controls for the whole app | `bama-design-system` |
+| An accent or brand color, or one set of colors, radii, and motion for the whole app | `bama-design-system` |
 | Fix spacing and alignment, or check the layout on the grid | `bama-layout-grid` |
 | An app icon | `bama-app-icon` |
 
@@ -56,7 +78,7 @@ view, and the real icon in every snapshot.
 | --- | --- |
 | Build it and look at every page | `bama-build-and-verify` |
 | Tests, a self-test, or an agent that drives the running app | `bama-test-app` |
-| Work through the backlog on its own | `bama-improve-loop` |
+| Work through a milestone's tickets on its own | `bama-improve-loop` |
 
 ## Done when
 

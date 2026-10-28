@@ -56,14 +56,14 @@ Your agent opens the app you like and screenshots every screen. It writes a scre
 
 **2. Plan**
 
-It turns the screens into user stories with checkable acceptance criteria, in milestones.
+It writes a brief in Bear and the milestones in OmniFocus. Before each milestone it asks you questions, writes the spec in Bear, and breaks it into OmniFocus tickets with checkable acceptance criteria.
 
 </td>
 <td width="33%" valign="top">
 
 **3. Build**
 
-It builds one story per commit. Before each commit it snapshots every page in light and dark mode and runs the tests.
+It builds one ticket per commit. Before each commit it snapshots every page in light and dark mode and runs the tests.
 
 </td>
 </tr>
