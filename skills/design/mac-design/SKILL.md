@@ -24,8 +24,8 @@ where the system has nothing.
   accessibility): call the Skill tool with `ux-design`.
 - Spacing, alignment, and the checks that catch misalignment: call the
   Skill tool with `layout-grid`.
-- Parts of your own instead of Apple's: call the Skill tool with
-  `design-kit`, or `design-from-app` to match an app the user names.
+- The colors, type, and spacing of an app the user names: call the Skill
+  tool with `design-from-app`.
 
 ## Apple's eight principles
 

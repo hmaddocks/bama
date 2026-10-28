@@ -1,14 +1,15 @@
 ---
 name: design-from-app
-description: Rebuild the look of an app the user likes as a native SwiftUI design kit, by measuring its screenshots (sizes, spacing, type, colors, icons), building its parts, and comparing pixel by pixel until they match. Use when the user names an app whose look they want, shares screenshots of one, or says "make it look like X".
+description: Measure the look of an app the user likes (sizes, spacing, type, colors) from its screenshots, write the numbers into the app's design tokens, and compare pixel by pixel until a screen matches. Use when the user names an app whose look they want, shares screenshots of one, or says "make it look like X".
 argument-hint: "<app name or screenshot paths>"
 ---
 
 # Design from app
 
-Look at an app, measure it, and rebuild its design system in SwiftUI. The
-result is a design kit (`design-kit` skill) with the reference app's
-numbers, and one reference screen that matches the screenshot.
+Look at an app, measure it, and put its numbers into this app's design
+tokens. Controls stay native: the reference app lends its colors, type
+sizes, and spacing, not its custom parts. Where the reference uses a
+custom control, use the native control that does the same job.
 
 Guessing gets close. Measuring gets it right. Two scripts do the
 measuring, next to this skill:
@@ -26,26 +27,27 @@ All coordinates are points (pixels / 2 for a Retina capture).
 Ask for screenshots, or take them with the `clone` skill. You need:
 
 - The window only, at 2x, no desktop. Save them in `design/reference/`.
-- One screen with the most parts on it (a sidebar, a list, a toolbar),
-  plus close-ups of menus, dialogs, and dark mode if they matter.
+- One screen with the most on it (a sidebar, a list, a toolbar), plus
+  close-ups of menus, dialogs, and dark mode if they matter.
 - The window size: `measure.swift info shot.png`.
 
 Check: `info` prints the window size in points, and every screenshot uses
 the same scale.
 
-## 2. List the parts
+## 2. List what to measure
 
-Look at each screenshot and name every distinct part: window chrome,
-sidebar row, section header, primary action, list row, checkbox, date
-chip, icon button, divider. Start `design/KIT.md` from the `design-kit`
-skill's kit-spec.md with one section per part.
+Name every token the screenshots show: window size, sidebar width, row
+height and pitch, left edges, gaps, text sizes per role, surface colors,
+text colors, the accent, and the selection color. Note each custom control
+and the native control that replaces it.
 
-Check: every visible element on the main screenshot belongs to a part.
+Check: every visible element on the main screenshot maps to a token or to
+a native control.
 
 ## 3. Measure
 
-Fill `design/KIT.md` with numbers, not estimates. The recipes and the
-traps are in [measuring.md](measuring.md). In short:
+Give every token a number, not an estimate. The recipes and the traps are
+in [measuring.md](measuring.md). In short:
 
 | To find | Command |
 | --- | --- |
@@ -57,34 +59,22 @@ traps are in [measuring.md](measuring.md). In short:
 | Surface colors | `palette shot.png x y w h` |
 | A close look | `crop shot.png x y w h out.png 4` |
 
-Check: every token and every part size in `design/KIT.md` has a number
-from a command.
+Most apps on the Mac use the system font. Start there, and name another
+font only when the letters differ (a, g, t, digits). Match icons with SF
+Symbols.
 
-## 4. Find the font and the icons
+Check: every token from step 2 has a number from a command.
 
-- Most apps on the Mac use the system font, even web apps. Start there.
-  When the letters differ (a, g, t, digits), name the font and pick it or
-  an open alternative with a license that allows bundling.
-- Text sizes come from step 6: build, measure the same word in both
-  images, scale.
-- Icons: note the size, stroke weight, corners, and whether selected rows
-  switch to a filled form. Match with SF Symbols at a light weight first;
-  draw the ones that do not match as shapes (`design-kit` parts.md, Icons).
+## 4. Write the tokens and build one screen
 
-Check: `design/KIT.md` names the font, the icon source, and the icon size
-and weight.
-
-## 5. Build the kit and one screen
-
-Call the Skill tool with `design-kit` and build the tokens, the parts, the
-window chrome, and the gallery from `design/KIT.md`. Then build the main
-screenshot's screen from kit parts only, with the same data and the same
-window size.
+Call the Skill tool with `design-system` and write the measured numbers
+into the app's tokens. Then build the main screenshot's screen with native
+controls and those tokens, with the same data and the same window size.
 
 Check: a snapshot of that screen has the same size in pixels as the
 reference.
 
-## 6. Compare until it matches
+## 5. Compare until it matches
 
 ```bash
 swift "${CLAUDE_SKILL_DIR}/scripts/compare.swift" design/reference/main.png /tmp/<App>-shots/<page>-light.png /tmp/<App>-compare
@@ -94,18 +84,15 @@ swift "${CLAUDE_SKILL_DIR}/scripts/compare.swift" ... /tmp/<App>-compare-sidebar
 Open `side-by-side.png` and `diff.png` with the Read tool. Then measure
 the same rows, edges, and words in both images, and fix the tokens, not
 the views. Order: window size, text sizes, columns and left edges, row
-heights, colors, icons.
+heights, colors.
 
-Check: under 2% of pixels differ on the whole window, and every row and
-left edge is within 1.5 pt of the reference.
+Native controls draw themselves, so a pixel match is not the goal where a
+native control replaced a custom one. Match the layout and colors around
+it.
 
-## 7. Make it yours
+Check: every row and left edge is within 1.5 pt of the reference, and
+every measured color matches its token.
 
-Before the app ships to anyone else, replace what belongs to the other
-company: its name, logo, illustrations, and any font or icon it owns.
-Keep the structure, the spacing, and the feel. Write the replacements in
-`design/KIT.md`.
-
-Done when `design/KIT.md` has a measured number for every token and part,
-the kit's gallery shows every part, the reference screen passes step 6,
-and step 7 lists what was replaced.
+Done when every token from step 2 has a measured number in the app's
+tokens, every custom control in the reference has a named native
+replacement, and the reference screen passes step 5.

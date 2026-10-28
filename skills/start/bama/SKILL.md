@@ -26,7 +26,6 @@ view, and the real icon in every snapshot.
 | A vague idea, or asks "what should I build" | `research`, then `app-brief` |
 | An app they want to replace or rebuild | `clone` |
 | A brief or a screen index, no backlog | `user-stories` |
-| A spec from BAMA's `specs/` folder | `app-brief` (it copies the spec) |
 
 ## Build
 
@@ -46,7 +45,6 @@ view, and the real icon in every snapshot.
 | Decide how a feature works and what it says: names, flow, modals, accessibility | `ux-design` |
 | Make it look and feel like a Mac app | `mac-design` |
 | An accent or brand color, a color picker, tokens | `design-system` |
-| Their own parts and feel, not Apple's: buttons, rows, sidebar, icons | `design-kit` |
 | The look of an app they name, or screenshots of one | `design-from-app` |
 | One set of colors, radii, motion, and controls for the whole app | `design-system` |
 | Fix spacing and alignment, or check the layout on the grid | `layout-grid` |

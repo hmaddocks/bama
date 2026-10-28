@@ -13,9 +13,8 @@ screen against one page.
 Start from `mac-design`. Tokens cover only what the system does not:
 the accent, custom surfaces, radii, motion, overlays, and custom controls.
 
-The app keeps Apple's look. Only the accent color changes. For parts of
-your own (a custom sidebar, buttons, icons), call the Skill tool with
-`design-kit`. To copy the look of an app the user names, call it with
+The app keeps Apple's look and native controls. To take the colors, type,
+and spacing of an app the user names, call the Skill tool with
 `design-from-app`.
 
 The template already has the base in `Sources/<App>/UI/`:

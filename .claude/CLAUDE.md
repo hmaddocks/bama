@@ -15,9 +15,6 @@ keep them identical.
   description. A user-invoked skill also sets
   `policy.allow_implicit_invocation: false`.
 - `.claude-plugin/plugin.json` lists every shipped skill in `skills`.
-- `specs/<app>.md`: build plans for small apps, taken from Onyx. Each has
-  Brief, How it works, Stories, Gotchas, and a "Done when" line, in that
-  order. `specs/README.md` lists them.
 
 ## Writing skills
 

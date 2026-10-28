@@ -20,13 +20,6 @@ scaffold all use it.
 If `docs/research/` or `docs/screens/INDEX.md` exist, read them first.
 Skip every question they already answer.
 
-If the user gives you a spec from BAMA's `specs/` folder (a file or a
-link), it already holds the brief and the stories. Copy its **Brief** block
-to `docs/BRIEF.md` and its **Stories** block to `docs/STORIES.md`. Keep the
-rest of the spec as `docs/SPEC.md`, so later skills read its **How it
-works** and **Gotchas**. Ask only what the user wants to change, then call
-the Skill tool with `new-mac-app`.
-
 ## 2. Interview
 
 Ask a few questions at a time. If the user asked you to decide everything,

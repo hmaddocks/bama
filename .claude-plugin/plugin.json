@@ -23,7 +23,6 @@
     "accessibility",
     "design-system",
     "grid",
-    "design-kit",
     "components"
   ],
   "skills": [
@@ -42,7 +41,6 @@
     "./skills/design/mac-design",
     "./skills/design/design-system",
     "./skills/design/layout-grid",
-    "./skills/design/design-kit",
     "./skills/design/design-from-app",
     "./skills/design/app-icon",
     "./skills/ship/build-and-verify",
