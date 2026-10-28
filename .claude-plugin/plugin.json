@@ -30,6 +30,7 @@
     "./skills/plan/bama-research",
     "./skills/plan/bama-clone",
     "./skills/start/bama-app-brief",
+    "./skills/plan/bama-feature-spec",
     "./skills/plan/bama-user-stories",
     "./skills/start/bama-new-app",
     "./skills/code/bama-swift",
