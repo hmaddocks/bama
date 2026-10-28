@@ -79,7 +79,7 @@ It builds one story per commit. Before each commit it snapshots every page in li
 <tr><td rowspan="4" valign="top"><b>Plan</b></td><td nowrap><a href="skills/plan/bama-research/SKILL.md"><samp>bama-research</samp></a></td><td>Parallel researcher agents: market, users, features, design, macOS APIs</td></tr>
 <tr><td nowrap><a href="skills/plan/bama-clone/SKILL.md"><samp>bama-clone</samp></a></td><td>Screenshots every screen of any app with computer use or a browser, writes a screen index</td></tr>
 <tr><td nowrap><a href="skills/plan/bama-feature-spec/SKILL.md"><samp>bama-feature-spec</samp></a></td><td>Grills you about one milestone and writes its spec as a Bear note</td></tr>
-<tr><td nowrap><a href="skills/plan/bama-user-stories/SKILL.md"><samp>bama-user-stories</samp></a></td><td>A backlog with checkable acceptance criteria, in milestones</td></tr>
+<tr><td nowrap><a href="skills/plan/bama-user-stories/SKILL.md"><samp>bama-user-stories</samp></a></td><td>Turns a milestone spec into OmniFocus tickets with checkable acceptance criteria</td></tr>
 <tr><td rowspan="5" valign="top"><b>Code</b></td><td nowrap><a href="skills/code/bama-swift/SKILL.md"><samp>bama-swift</samp></a></td><td>Swift 6 concurrency, state, SwiftData, AppKit bridges, compiler errors</td></tr>
 <tr><td nowrap><a href="skills/code/bama-os-integrations/SKILL.md"><samp>bama-os-integrations</samp></a></td><td>Global hotkeys, menu bar, floating panels, window control, screen capture, Shortcuts, URL schemes, CLI, permissions</td></tr>
 <tr><td nowrap><a href="skills/code/bama-performance/SKILL.md"><samp>bama-performance</samp></a></td><td>Measure, then fix: main thread, GPU compositing, images, Instruments from the command line</td></tr>

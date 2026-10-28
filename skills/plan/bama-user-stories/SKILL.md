@@ -1,84 +1,103 @@
 ---
 name: bama-user-stories
-description: Prioritized backlog of user stories with checkable acceptance criteria (docs/STORIES.md) for a macOS app, built from a brief, research, or screen index. Use after app-brief or clone, or when the user asks for user stories, a backlog, a feature list, or "what do we build first".
+description: Tickets with checkable acceptance criteria for one milestone of an app, written as OmniFocus sub-actions from the milestone's Bear spec. Use after bama-feature-spec, or when the user asks for tickets, user stories, or "what do we build first" for a milestone.
+argument-hint: "[milestone name]"
 ---
 
 # User stories
 
 Screens show what an app looks like. Stories say what a person does with
-it. You build and test stories, not screens.
+it. You build and test stories, not screens. Each story becomes a ticket:
+an OmniFocus sub-action under the milestone action.
 
-Read `docs/BRIEF.md`, `docs/research/*.md`, and `docs/screens/INDEX.md`
-where they exist. Write `docs/STORIES.md`.
+This needs the OmniFocus and Bear MCP servers. If either is missing, say
+which, and stop.
 
-## Story format
+## 1. Read
 
-```markdown
-### S-012 Complete a task with the keyboard
+Take the milestone the user named, or the first incomplete milestone
+action in "<App> App" that has a spec and no tickets. Read:
+
+- its spec, "<App> spec: <milestone>", and its Q&A note "<App>: <milestone>"
+- `CONTEXT.md` in the app's repo, for the names to use
+- "<App>: screens", where it exists, for the reference screenshots
+
+Check: you have the spec's numbered user stories in front of you.
+
+## 2. Write the tickets
+
+One ticket per action a person takes: "Rename a project from its context
+menu", not "Manage projects". Number them T1, T2 in build order, so
+tickets that others depend on come first. Name each sub-action
+"T<n> <action>".
+
+The ticket's note:
+
+```text
+Type: AFK
+Status: open
+Blocked by: T1
+
 As the user, I select a task and press Command-Return to complete it.
 Screens: 01-inbox.png, 02-today.png
-Depends: S-004
 Acceptance:
 - [snap] The circle fills and the row fades out within half a second.
 - [self] An "Undo" banner shows for five seconds; Command-Z also undoes it.
 - [unit] A recurring task moves to its next date.
-Status: todo
 ```
 
-- One action per story. "Rename a project from its context menu", not
-  "Manage projects".
+- `Type:` is `AFK` when an agent can finish and check it alone, `HITL`
+  when it needs a person: a judgement call, or a check only a person can
+  make (drag and drop feel, a real iCloud account).
+- `Blocked by:` (optional) lists tickets that must be done first.
 - Every acceptance line starts with how it is checked: `[snap]` snapshot,
   `[unit]` unit test, `[self]` self-test, `[manual]` a person must try it.
   "Works well" is not checkable.
-- `Screens:` links reference screenshots, so `bama-improve-loop` knows what to
-  compare. Without a reference app, name the snapshot pages that will show
-  the story. A panel, sheet, or menu needs its own snapshot page.
-- `Depends:` (optional) lists stories that must be done first.
-- Keep a control and the only surface that shows it in one story: a
+- `Screens:` links reference screenshots in `docs/screens/`, so
+  `bama-improve-loop` knows what to compare. Without a reference app, name
+  the snapshot pages that will show the ticket. A panel, sheet, or menu
+  needs its own snapshot page.
+- Keep a control and the only surface that shows it in one ticket: a
   highlighting field that lives only in the quick-add panel ships with the
   panel.
-- Status: `todo`, `doing`, `done`, or `dropped`.
+- Every attribute the seed data sets (symbols, colors, notes) is something
+  a ticket lets the user create. Otherwise snapshots show features no one
+  can use.
 
-## Milestones
+The first milestone has 5 to 10 tickets. More than about 15 in any
+milestone means it is too big: move stories to the spec's Out of Scope,
+or to a later milestone's one-line scope.
 
-Each milestone ends with an app the user can use for a day.
+Check: every user story in the spec maps to a ticket or to a line in Out
+of Scope.
 
-1. **M1 Core loop**: the one thing the app is for, end to end. Data
-   survives a restart.
-2. **M2 Organize**: the main structure, sidebar pages, moving items.
-3. **M3 Time**: dates, Today and Upcoming, recurrence, reminders.
-4. **M4 Speed**: quick-add panel, global shortcut, natural language input,
-   keyboard navigation, search, menu commands.
-5. **M5 System**: menu bar, Share menu, Shortcuts, notifications, CLI.
-6. **M6 Polish**: drag and drop, context menus, empty states, icon, settings.
+## 3. UX notes
 
-Rename milestones to fit the app. Inside a milestone, stories that others
-depend on come first.
+For each ticket that adds a screen, an action, or words, call the Skill
+tool with `bama-ux-design`. It adds a `UX:` block to the ticket's note and
+puts new terms in `CONTEXT.md`.
 
-## Seed data
+Check: every such ticket has a `UX:` block.
 
-Every attribute the seed data sets (symbols, colors, notes) is something a
-story lets the user create in the app. Otherwise snapshots show features
-no one can use.
+## 4. Tag and order
 
-## Leave things out
+Tag each ticket with the app's triage tags. `AFK` tickets get
+`ready-for-agent`, `HITL` tickets get `ready-for-human`:
 
-Drop what exists only for other people or for the vendor: accounts,
-sharing, teams, integrations, upgrade prompts, gamification. List them
-under `## Dropped`, one line each, so the decision is visible.
+```bash
+tools/omnifocus-setup.sh <App> tag <task-id> ready-for-agent
+```
 
-## UX notes
+The OmniFocus MCP server matches tags by bare name, so it would add
+another app's tag. The script looks the tag up in "<App> triage".
 
-For each M1 story that adds a screen, an action, or words, call the Skill
-tool with `bama-ux-design`. It adds a `UX:` block under the acceptance lines and
-starts `docs/GLOSSARY.md`, so every story uses the same names. Later
-milestones get their UX notes in `bama-improve-loop`, just before they are built.
+Write the order into the milestone action's note, under the Spec and
+branch lines: "T1 first. T2 and T3 can run in parallel after T1. T4 needs
+T2."
 
-## Size check
+Check: every ticket has exactly one triage tag from "<App> triage".
 
-M1 has 5 to 10 stories. Over 60 stories in total means version one is too
-big: move stories to `## Later`.
-
-Done when every main job in the brief, every "Version one: yes" row in the
-research matrix, and every screen in the index maps to a story or a
-`Dropped` line, and every M1 story with UI has a `UX:` block.
+Done when every user story in the spec maps to a ticket or an Out of
+Scope line, every ticket has a type, a status, checkable acceptance lines,
+and a triage tag, every UI ticket has a `UX:` block, and the action's note
+gives the order.

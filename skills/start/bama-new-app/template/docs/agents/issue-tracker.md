@@ -38,5 +38,6 @@ server, tagged #__BEAR_TAG__.
 
 The OmniFocus MCP server finds a tag by its bare name and cannot nest
 tags. Other projects have their own ready-for-agent tag, so the server
-would pick the wrong one. Tag tickets with the bama-app-brief skill's
-`scripts/omnifocus-setup.sh __APP_NAME__ tag <task-id> <tag>`.
+would pick the wrong one. Tag tickets with
+`tools/omnifocus-setup.sh __APP_NAME__ tag <task-id> <tag>`, which looks
+the tag up inside the app's own group.
