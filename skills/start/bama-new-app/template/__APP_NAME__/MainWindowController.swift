@@ -11,8 +11,11 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         self.store = store
         super.init(window: window)
         window.delegate = self
-        window.setFrameAutosaveName("MainWindow")
         contentViewController = EmptyViewController()
+        // Setting the content resizes the window to the content's own size,
+        // which is tiny for a split view. Size it, then let a saved frame win.
+        window.setContentSize(NSSize(width: 900, height: 600))
+        window.setFrameAutosaveName("MainWindow")
     }
 
     @available(*, unavailable)
