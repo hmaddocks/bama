@@ -124,13 +124,14 @@ A to-do app lives in its quick-add panel.
 ## Windows open calm
 
 - Nothing is focused when a window or sheet opens: no focus ring, no
-  blinking cursor, no selected text. Put `.noInitialFocus()` on every
-  window and sheet. The one exception is a window whose only job is
+  blinking cursor, no selected text. Set `initialFirstResponder` to nil and
+  make the window itself first responder (`window.makeFirstResponder(nil)`)
+  when a window or sheet opens. The one exception is a window whose only job is
   typing, like a search or quick-add panel: it focuses its field.
 - A sidebar list may hold focus at launch. It shows as a selected row, not
   a ring, and the arrow keys work at once.
-- A sheet, popover, or Settings tab grows to fit its content
-  (`.fitsContent()`). It scrolls only when the content is taller than
+- A sheet, popover, or Settings tab grows to fit its content (set
+  `preferredContentSize` from the view's `fittingSize`). It scrolls only when the content is taller than
   the screen allows, about 640 pt.
 - System scroll bars. The "Show scroll bars" setting decides when they
   show. Do not restyle them.

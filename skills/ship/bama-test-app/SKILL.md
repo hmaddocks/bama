@@ -5,12 +5,12 @@ description: Test a macOS app at three levels, from Swift Testing unit tests and
 
 # Test a Mac app
 
-Three levels, cheapest first. Each new story gets the cheapest level that
-can prove its acceptance criteria. A bug fix starts with a test that fails.
+Three levels, cheapest first. Each new ticket gets the cheapest level that
+can prove its acceptance lines. A bug fix starts with a test that fails.
 
 | Level | Proves | Speed |
 | --- | --- | --- |
-| Unit tests (Swift Testing) | Rules, parsing, data | Seconds |
+| Unit tests (Swift Testing, `bin/test`) | Rules, parsing, calculations in `<App>Core` | Seconds |
 | Self-test (`--selftest`) | The app's real functions on a test store | Seconds |
 | Key events and menu audit (inside the self-test) | Keyboard flows and every shortcut, without the screen | Seconds |
 | Debug bridge + computer use | Global shortcuts, panels, permissions, other apps | Minutes |
@@ -20,12 +20,15 @@ how it behaves.
 
 ## 1. Unit tests
 
-Logic lives in a library target (`<App>Kit`) with no SwiftUI, so tests run
-without the app.
+Logic lives in the core package (`<App>Core`) with no AppKit, so tests run
+without the app. Test pure types with plain values, and services with
+protocol-based fakes. Use the in-memory store (`Store(url: nil)`) only for
+store-level tests: a test that opens a store to check a pure function is
+wrong.
 
 ```swift
 import Testing
-@testable import AppKitCore
+@testable import TasksCore
 
 @Test("Natural dates", arguments: [("tomorrow 9am", 1, 9), ("next fri", 5, nil)])
 func parses(_ phrase: String, dayOffset: Int, hour: Int?) throws {
@@ -36,10 +39,12 @@ func parses(_ phrase: String, dayOffset: Int, hour: Int?) throws {
 ```
 
 ```bash
-swift test --scratch-path ~/Library/Developer/<App>/test-build
+bin/test                   # pins a full Xcode, so Swift Testing's macros work
+bin/test --filter DateParser
 ```
 
-- Fix the clock (`now:` parameter) and the store path in every test.
+- Fix the clock (`now:` parameter) in every test. Inject it; never read
+  `Date.now` inside the logic.
 - A parser that removes text from what the user typed needs at least 20
   negative rows: real titles that contain date or time words ("Watch
   Friday Night Lights"). Add consistency rows for related phrases ("next
@@ -54,13 +59,17 @@ A launch flag that runs the same functions the UI calls, prints PASS or FAIL
 per step, and exits 0 or 1:
 
 ```bash
-APP_STORE=/tmp/<App>-self.store ~/Applications/<App>.app/Contents/MacOS/<App> --selftest
+tools/selftest.sh
+# or: APP_STORE=/tmp/<App>-self.sqlite ~/Applications/<App>.app/Contents/MacOS/<App> --selftest
 # PASS add task
 # PASS complete task
 # PASS undo
 ```
 
-Always point it at a store in `/tmp`. Never at the user's data.
+Always point it at a store in `/tmp`; the app refuses otherwise. Add each
+check to `<App>/SelfTest.swift` with `check("name", condition)`. The
+self-test is where model and storage behavior is proven: delete rules,
+saving and reopening the store, undo.
 
 Checks worth adding to any self-test:
 
@@ -75,8 +84,8 @@ Checks worth adding to any self-test:
   background queues.
 
 A single-instance app (menu bar utility) cannot launch a second copy with
-`--selftest`. Make it a bridge command instead. Xcode and XcodeGen apps
-without a library target: see
+`--selftest`. Make it a bridge command instead. Apps without a core
+package: see
 [../bama-build-and-verify/existing-app.md](../bama-build-and-verify/existing-app.md)
 for a test target with no host app.
 
@@ -100,16 +109,26 @@ Focus the list after making the window key (`window.makeKey()`, then
 `makeFirstResponder(list)`). A search field in the toolbar can take focus
 first, and then list keys and menu items miss the list.
 
-### Menu check (from outside)
+### Menu state
 
-Do not test SwiftUI menu state from inside the app. Its items carry no
-action selector, `isEnabled` updates on SwiftUI's schedule, and the checks
-fail whenever another app is in front, which is always true while an agent
-works. In the self-test, check what the commands receive (the selection
-passed into them) and run the actions the items call.
+AppKit menu items carry their action, so the self-test can check them from
+inside. With the main window key and a known selection, find who handles
+the item and ask it:
 
-Check the real menu from outside, through Accessibility, on a seeded test
-copy. Computer use `app_menu` works in the background:
+```swift
+func isEnabled(_ item: NSMenuItem) -> Bool {
+    guard let action = item.action,
+          let target = NSApp.target(forAction: action, to: item.target, from: item)
+    else { return false }
+    return (target as? NSMenuItemValidation)?.validateMenuItem(item) ?? true
+}
+```
+
+Check each command with nothing selected (disabled) and with a row selected
+(enabled, with the right title), then call the action and check the store.
+
+To check the real menu as a person sees it, go through Accessibility on a
+seeded test copy. Computer use `app_menu` works in the background:
 
 1. Nothing selected: To-Do > Complete is reported disabled.
 2. Click a row (`app_click`), then To-Do > Complete: the row is done and the
@@ -123,10 +142,10 @@ after touching commands.
 - Quit through `NSApp.terminate`, with the exit code set in
   `applicationWillTerminate`. Close open sheets first, or terminate is
   refused and the run waits forever.
-- Before each run, delete `~/Library/Saved Application State/<bundle id>.savedState`.
-  After a crash, the next launch shows a "reopen windows?" alert that
-  blocks every later run with no output. Do not use
-  `-ApplePersistenceIgnoreState`: SwiftUI then opens no window at all.
+- Before each run, delete `~/Library/Saved Application State/<bundle id>.savedState`
+  (the tools do). After a crash, the next launch can show a "reopen
+  windows?" alert that blocks every later run with no output. The
+  skeleton's windows are `restorable="NO"`, which avoids most of it.
 - Delete the old test store and its `-wal` and `-shm` files before a
   seeded run. Seed data only fills an empty store.
 - Print line-buffered (`setvbuf(stdout, nil, _IOLBF, 0)`), so a crash
@@ -174,6 +193,6 @@ A GUI app's `print` is buffered and lost when the process is killed. Write
 debug lines to stderr (`FileHandle.standardError.write`) behind an
 environment flag (`APP_DEBUG=1`).
 
-Done when every acceptance line of the story maps to a passing test,
+Done when every acceptance line of the ticket maps to a passing test,
 self-test step, bridge command, or a named manual check, and the bug fix
 has a test that failed before the fix.

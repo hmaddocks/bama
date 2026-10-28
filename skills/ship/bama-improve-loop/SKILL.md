@@ -60,7 +60,7 @@ give it a default value so existing databases keep loading.
 Follow the `bama-swift` and `bama-mac-design` skills, the ticket's `UX:`
 block, and `DESIGN.md` if the app has one. System hooks follow
 `bama-os-integrations`. Keep each view file under about 300 lines.
-Put new pages in the `SidebarItem` enum so snapshot mode visits them.
+Register every new page, sheet, and panel in `AppDelegate.snapshotPages` so snapshot mode visits it.
 Use the terms in `CONTEXT.md`.
 
 ## 4. Build and snapshot

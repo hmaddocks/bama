@@ -157,7 +157,7 @@ Button("Open in New Window") { openWindow(value: item.persistentModelID) }
 
 A place people come back to (Inbox, Today, a project) is a sidebar page.
 One item of that list opens in the detail column or the inspector, not in a
-sheet. Add the page to the `SidebarItem` enum so snapshot mode visits it.
+sheet. Register it as a snapshot page in `AppDelegate.snapshotPages` so snapshot mode visits it.
 
 ## Confirmation dialog
 

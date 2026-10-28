@@ -41,6 +41,11 @@ enum Snapshot {
                                         IOPMAssertionLevel(kIOPMAssertionLevelOn), "Snapshots" as CFString, &awake)
             try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
             try? await Task.sleep(for: .seconds(1.5))
+            // Started from a terminal, the app is not active, and an inactive
+            // window draws grey traffic lights and dim selection. Activation
+            // arrives a moment later, so wait for it before the first capture.
+            activate()
+            for _ in 0..<30 where !NSApp.isActive { try? await Task.sleep(for: .seconds(0.1)) }
             for mode in ["light", "dark"] {
                 NSApp.appearance = NSAppearance(named: mode == "light" ? .aqua : .darkAqua)
                 for page in pages where only?.contains(page.name) ?? true {
@@ -54,6 +59,12 @@ enum Snapshot {
             for window in NSApp.windows { if let sheet = window.attachedSheet { window.endSheet(sheet) } }
             NSApp.terminate(nil)
         }
+    }
+
+    /// `NSApp.activate()` only asks to become active, and a terminal that
+    /// keeps focus says no. Snapshots need the real active look.
+    private static func activate() {
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     /// Captures the real window with screencapture, so materials, sidebars
@@ -70,8 +81,9 @@ enum Snapshot {
             return
         }
         // Active, like a window someone is using: real accent colours and focus rings.
-        NSApp.activate()
+        activate()
         window.makeKeyAndOrderFront(nil)
+        let note = window.isKeyWindow ? "" : " (not key: inactive look, capture again)"
         try? FileManager.default.removeItem(atPath: path)
         // The first capture of a run sometimes misses the window. Try three times.
         for _ in 1...3 {
@@ -81,7 +93,7 @@ enum Snapshot {
             try? shot.run()
             shot.waitUntilExit()
             if FileManager.default.fileExists(atPath: path) {
-                print("SNAPSHOT \(path)")
+                print("SNAPSHOT \(path)\(note)")
                 return
             }
             Thread.sleep(forTimeInterval: 0.5)

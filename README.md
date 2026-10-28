@@ -92,7 +92,7 @@ It builds one ticket per commit. Before each commit it snapshots every page in l
 <tr><td nowrap><a href="skills/design/bama-design-from-app/SKILL.md"><samp>bama-design-from-app</samp></a></td><td>Rebuilds the look of an app you like from its screenshots: measures sizes, type, and colors, then compares pixel by pixel until it matches</td></tr>
 <tr><td nowrap><a href="skills/design/bama-app-icon/SKILL.md"><samp>bama-app-icon</samp></a></td><td>A Liquid Glass icon written as an Icon Composer file, checked in every look</td></tr>
 <tr><td rowspan="3" valign="top"><b>Ship</b></td><td nowrap><a href="skills/ship/bama-build-and-verify/SKILL.md"><samp>bama-build-and-verify</samp></a></td><td>Build, install, snapshot every page in light and dark, look at them</td></tr>
-<tr><td nowrap><a href="skills/ship/bama-test-app/SKILL.md"><samp>bama-test-app</samp></a></td><td>Swift Testing, an in-app self-test, a debug bridge an agent can drive</td></tr>
+<tr><td nowrap><a href="skills/ship/bama-test-app/SKILL.md"><samp>bama-test-app</samp></a></td><td>Swift Testing in the core package, an in-app self-test with menu checks, a debug bridge an agent can drive</td></tr>
 <tr><td nowrap><a href="skills/ship/bama-improve-loop/SKILL.md"><samp>bama-improve-loop</samp></a></td><td>Works through a milestone's OmniFocus tickets, one commit each, until the milestone is done</td></tr>
 </table>
 

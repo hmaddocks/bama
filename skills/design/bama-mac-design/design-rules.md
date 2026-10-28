@@ -94,7 +94,7 @@ snapshot or in the code. Sources are listed at the bottom.
 
 ## Windows, focus, and scrolling
 
-51. No control is focused when a window or sheet opens: no focus ring, no cursor, no selected text (`.noInitialFocus()`). Only a window whose one job is typing focuses its field. [field test]
+51. No control is focused when a window or sheet opens: no focus ring, no cursor, no selected text (`window.makeFirstResponder(nil)` after it opens). Only a window whose one job is typing focuses its field. [field test]
 52. Sheets, popovers, and Settings tabs size to their content. A scroll bar appears only when there is more to scroll. [field test]
 53. System scroll bars, never restyled. They follow the "Show scroll bars" setting. [HIG Scroll views]
 54. Settings: tabs by topic, one grid of rows per tab, 520 pt wide, applied at once, labels as statements. Recipe: settings.md. [HIG Settings, field test]

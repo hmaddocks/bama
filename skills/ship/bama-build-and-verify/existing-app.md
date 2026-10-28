@@ -1,9 +1,10 @@
 # Existing apps
 
 The ship and code skills assume an app made from the `bama-new-app`
-template: SwiftPM, `build.sh`, `APP_SNAPSHOT`, `APP_STORE`, Swift 6 with
-main-actor default isolation. An older app, or one built with Xcode or
-XcodeGen, has none of these. Map each piece first, then follow the skills.
+skeleton: an XcodeGen project, `build.sh`, `bin/test` for a core package,
+`APP_SNAPSHOT`, `APP_STORE`, `--selftest`, and Swift 6. An older app, a
+SwiftUI app, or one built with a committed Xcode project has none of
+these. Map each piece first, then follow the skills.
 
 ## Contents
 
@@ -17,13 +18,13 @@ XcodeGen, has none of these. Map each piece first, then follow the skills.
 
 | Template piece | Existing Xcode or XcodeGen app |
 | --- | --- |
-| `./build.sh` | `make build`, or `xcodebuild -scheme <App> -configuration Release -derivedDataPath ~/Library/Developer/<App>-cli build` |
+| `./build.sh` | `make build`, or `xcodebuild -scheme <App> -configuration Release -derivedDataPath ~/Library/Developer/<App>-cli build` with `DEVELOPER_DIR` pinned to Xcode |
 | `./build.sh --open` | Kill, copy to the same install path, `lsregister -f -R -trusted`, `open` |
 | `APP_SNAPSHOT` mode | A `snapshot:` command in a debug bridge (below) |
 | `APP_STORE=/tmp/...` | A data folder override, or a bridge command that only reads |
-| `swift test` | A test target with no host app (below) |
+| `bin/test` (the core package) | A test target with no host app (below) |
 | `--selftest` launch flag | A `selftest` bridge command (below) |
-| Swift 6, default isolation | Swift 5 mode: migrate (below) or keep it and annotate `@MainActor` |
+| Swift 6 | Swift 5 mode: migrate (below) or keep it and annotate `@MainActor` |
 
 Write the mapping into the app's `AGENTS.md`, and create the file if it is
 missing.
